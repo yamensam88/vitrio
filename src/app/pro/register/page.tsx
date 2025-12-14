@@ -1,0 +1,243 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useApp } from "@/context/AppContext";
+
+export default function RegisterPro() {
+    const router = useRouter();
+    const { addGarage } = useApp();
+    const [loading, setLoading] = useState(false);
+
+    const [formData, setFormData] = useState({
+        name: "",
+        siret: "",
+        city: "",
+        address: "",
+        email: "",
+        phone: "",
+        offerType: 'finance' as 'finance' | 'gift',
+        customName: "",
+        customValue: 0
+    });
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Logic to construct offer
+        let description = "";
+        let effectivePrice = 0;
+
+        if (formData.offerType === 'finance') {
+            description = `Franchise offerte (jusqu'à ${formData.customValue}€)`;
+            effectivePrice = -formData.customValue; // Negative price favors sorting
+        } else {
+            description = `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`;
+            effectivePrice = -formData.customValue;
+        }
+
+        addGarage({
+            name: formData.name,
+            city: formData.city,
+            offerDescription: description,
+            offerPrice: effectivePrice
+        });
+
+        // Redirect to dashboard
+        router.push('/pro/dashboard');
+    };
+
+    return (
+        <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+            {/* Header */}
+            <nav className="container" style={{ padding: '1rem 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>Vitrio <span style={{ color: 'var(--color-text-main)', fontWeight: 400 }}>Pro</span></Link>
+                <Link href="/pro" style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>&larr; Retour</Link>
+            </nav>
+
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+                <div className="card" style={{ maxWidth: '500px', width: '100%', padding: '2.5rem' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', textAlign: 'center' }}>
+                        Rejoignez le réseau Vitrio
+                    </h1>
+                    <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>
+                        Inscription gratuite et sans engagement.
+                    </p>
+
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Nom du Garage</label>
+                            <input
+                                required
+                                type="text"
+                                className="input-field"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="ex: AutoGlass Paris"
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Numéro SIRET</label>
+                            <input
+                                required
+                                type="text"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                value={formData.siret}
+                                onChange={e => setFormData({ ...formData, siret: e.target.value })}
+                                placeholder="123 456 789 00012"
+                            />
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Ville</label>
+                                <input
+                                    required
+                                    type="text"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                    value={formData.city}
+                                    onChange={e => setFormData({ ...formData, city: e.target.value })}
+                                    placeholder="Paris"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Téléphone</label>
+                                <input
+                                    required
+                                    type="tel"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                    value={formData.phone}
+                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                    placeholder="01 23 45 67 89"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Email Professionnel</label>
+                            <input
+                                required
+                                type="email"
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                value={formData.email}
+                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                placeholder="contact@garage.com"
+                            />
+                        </div>
+
+                        {/* OFFER SECTION */}
+                        <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#F0F9FF', borderRadius: '8px', border: '1px solid #BAE6FD' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#0369A1' }}>Votre Offre Vitrio</h3>
+
+                            {/* Toggle Type */}
+                            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, offerType: 'finance' }))}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.5rem',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '6px',
+                                        border: '1px solid',
+                                        borderColor: formData.offerType === 'finance' ? '#0284C7' : '#E2E8F0',
+                                        backgroundColor: formData.offerType === 'finance' ? '#E0F2FE' : 'white',
+                                        color: formData.offerType === 'finance' ? '#0284C7' : '#64748B',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    💰 Remboursement
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, offerType: 'gift' }))}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.5rem',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '6px',
+                                        border: '1px solid',
+                                        borderColor: formData.offerType === 'gift' ? '#0284C7' : '#E2E8F0',
+                                        backgroundColor: formData.offerType === 'gift' ? '#E0F2FE' : 'white',
+                                        color: formData.offerType === 'gift' ? '#0284C7' : '#64748B',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    🎁 Cadeau
+                                </button>
+                            </div>
+
+                            {formData.offerType === 'finance' ? (
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Montant offert / Remboursé</label>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        <input
+                                            required
+                                            type="number"
+                                            style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                            value={formData.customValue}
+                                            onChange={e => setFormData({ ...formData, customValue: parseInt(e.target.value) || 0 })}
+                                            placeholder="100"
+                                        />
+                                        <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                    </div>
+                                    <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: 4 }}>
+                                        Sera affiché comme : "Franchise offerte jusqu'à {formData.customValue}€"
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Nature du Cadeau</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                            value={formData.customName}
+                                            onChange={e => setFormData({ ...formData, customName: e.target.value })}
+                                            placeholder="ex: Nintendo Switch Lite"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Valeur Estimée</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <input
+                                                required
+                                                type="number"
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                value={formData.customValue}
+                                                onChange={e => setFormData({ ...formData, customValue: parseInt(e.target.value) || 0 })}
+                                                placeholder="200"
+                                            />
+                                            <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="btn btn-primary"
+                            style={{ marginTop: '1rem', padding: '1rem', width: '100%', justifyContent: 'center' }}
+                        >
+                            {loading ? 'Création en cours...' : 'Valider mon inscription'}
+                        </button>
+                    </form>
+
+                    <p style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                        En cliquant sur valider, vous acceptez nos CGU Partenaires.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
