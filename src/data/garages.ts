@@ -10,6 +10,7 @@ export const MOCK_GARAGES: Garage[] = [
         rating: 4.8,
         nextAvailability: "2024-05-20T09:00:00.000Z",
         image: "/images/garage1.jpg",
+        accessCode: "1234",
         offers: [
             {
                 id: "o1",
@@ -30,6 +31,7 @@ export const MOCK_GARAGES: Garage[] = [
         rating: 4.2,
         nextAvailability: "2024-05-18T14:30:00.000Z", // Disponible plus tôt
         image: "/images/garage2.jpg",
+        accessCode: "2222",
         offers: [
             {
                 id: "o2",
@@ -58,6 +60,7 @@ export const MOCK_GARAGES: Garage[] = [
         rating: 4.9,
         nextAvailability: "2024-05-21T10:00:00.000Z",
         image: "/images/garage3.jpg",
+        accessCode: "3333",
         offers: [
             {
                 id: "o4",
@@ -78,6 +81,7 @@ export const MOCK_GARAGES: Garage[] = [
         rating: 3.5,
         nextAvailability: "2024-05-18T08:00:00.000Z", // Très tôt
         image: "/images/garage4.jpg",
+        accessCode: "4444",
         offers: [
             {
                 id: "o5",

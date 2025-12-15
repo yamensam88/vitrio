@@ -23,4 +23,5 @@ export interface Garage {
     distance?: number; // Calculated distance from user in km
     nextAvailability: string; // ISO Date
     image?: string; // Placeholder string
+    accessCode?: string; // Code de connexion partenaire
 }

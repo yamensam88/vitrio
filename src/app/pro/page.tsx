@@ -6,7 +6,10 @@ export default function PartnerLanding() {
             {/* Navigation */}
             <nav className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1rem' }}>
                 <Link href="/" style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>Vitrio <span style={{ color: 'var(--color-text-main)', fontWeight: 400 }}>Pro</span></Link>
-                <Link href="/" style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>Retour au site client</Link>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                    <Link href="/pro/login" style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: 600 }}>Se connecter</Link>
+                    <Link href="/" style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>Retour au site client</Link>
+                </div>
             </nav>
 
             {/* Hero */}

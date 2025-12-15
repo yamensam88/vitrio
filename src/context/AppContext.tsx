@@ -44,6 +44,12 @@ interface AppContextType {
     searchableGarages: Garage[]; // New Search State
     updateGarageStatus: (id: number, status: AdminGarage['status']) => void;
     addGarage: (garage: RegistrationPayload) => void;
+
+    // Partner Auth
+    userGarage: Garage | null;
+    loginGarage: (code: string) => boolean;
+    logoutGarage: () => void;
+    updateGarageAvailability: (date: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -158,6 +164,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchableGarages(prev => [newSearchGarage, ...prev]);
     };
 
+    // --- Partner Auth State ---
+    const [userGarage, setUserGarage] = useState<Garage | null>(null);
+
+    const loginGarage = (code: string): boolean => {
+        const garage = searchableGarages.find(g => g.accessCode === code);
+        if (garage) {
+            setUserGarage(garage);
+            return true;
+        }
+        return false;
+    };
+
+    const logoutGarage = () => {
+        setUserGarage(null);
+    };
+
+    const updateGarageAvailability = (date: string) => {
+        if (!userGarage) return;
+        const updatedGarage = { ...userGarage, nextAvailability: date };
+        setUserGarage(updatedGarage); // Update local user state
+        setSearchableGarages(prev => prev.map(g => g.id === userGarage.id ? updatedGarage : g)); // Update global search state
+    };
+
     return (
         <AppContext.Provider value={{
             appointments,
@@ -166,7 +195,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
             adminGarages,
             searchableGarages,
             updateGarageStatus,
-            addGarage
+            addGarage,
+            userGarage,
+            loginGarage,
+            logoutGarage,
+            updateGarageAvailability
         }}>
             {children}
         </AppContext.Provider>
