@@ -33,6 +33,22 @@ export const GarageCard = ({ garage, onSelect }: GarageCardProps) => {
                     )}
                     <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0', color: 'var(--color-text-main)' }}>{garage.name}</h3>
                     <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem' }}>{garage.address}</p>
+
+                    {/* Service Badges */}
+                    {(garage.homeService || garage.courtesyVehicle) && (
+                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                            {garage.homeService && (
+                                <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', backgroundColor: '#DBEAFE', color: '#1E40AF', borderRadius: '4px', fontWeight: 600 }}>
+                                    🏠 Intervention à domicile
+                                </span>
+                            )}
+                            {garage.courtesyVehicle && (
+                                <span style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: '4px', fontWeight: 600 }}>
+                                    🚗 Véhicule de courtoisie
+                                </span>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 

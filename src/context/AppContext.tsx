@@ -28,9 +28,13 @@ export interface AdminGarage {
     status: "En attente" | "Actif" | "Suspendu";
     registrationDate: string;
     garageId?: string; // Link to search/appointment system
+    email?: string; // Pour envoi du code
+    generatedCode?: string; // Code généré par l'admin
+    homeService?: boolean;
+    courtesyVehicle?: boolean;
 }
 
-export interface RegistrationPayload extends Omit<AdminGarage, 'id' | 'status' | 'registrationDate'> {
+export interface RegistrationPayload extends Omit<AdminGarage, 'id' | 'status' | 'registrationDate' | 'generatedCode'> {
     offerDescription: string;
     offerPrice: number;
 }
@@ -50,6 +54,7 @@ interface AppContextType {
     loginGarage: (code: string) => boolean;
     logoutGarage: () => void;
     updateGarageAvailability: (date: string) => void;
+    generateAccessCode: (garageId: number) => string;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -138,7 +143,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
             city: garage.city,
             status: "En attente",
             registrationDate: new Date().toISOString().split('T')[0],
-            garageId: newGarageId // Link!
+            garageId: newGarageId, // Link!
+            email: garage.email,
+            homeService: garage.homeService,
+            courtesyVehicle: garage.courtesyVehicle
         };
         setAdminGarages(prev => [newAdminGarage, ...prev]);
 
@@ -152,6 +160,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             rating: 5.0, // New garage gets boost
             nextAvailability: new Date().toISOString(), // Available now
             image: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800",
+            homeService: garage.homeService,
+            courtesyVehicle: garage.courtesyVehicle,
             offers: [{
                 id: `o_${newGarageId}`,
                 price: garage.offerPrice,
@@ -187,6 +197,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSearchableGarages(prev => prev.map(g => g.id === userGarage.id ? updatedGarage : g)); // Update global search state
     };
 
+    const generateAccessCode = (garageId: number): string => {
+        // Generate 4-digit code
+        const code = Math.floor(1000 + Math.random() * 9000).toString();
+
+        // Find admin garage
+        const adminGarage = adminGarages.find(g => g.id === garageId);
+        if (!adminGarage) return '';
+
+        // Update admin garage with code
+        setAdminGarages(prev => prev.map(g =>
+            g.id === garageId ? { ...g, generatedCode: code } : g
+        ));
+
+        // Create/Update searchable garage with access code
+        if (adminGarage.garageId) {
+            setSearchableGarages(prev => prev.map(g =>
+                g.id === adminGarage.garageId ? { ...g, accessCode: code } : g
+            ));
+        }
+
+        // Simulate email sending
+        console.log(`[EMAIL SIMULATION] Envoi du code d'accès au garage "${adminGarage.name}"`);
+        console.log(`Destinataire: ${adminGarage.email || 'email@non-fourni.com'}`);
+        console.log(`Code d'accès: ${code}`);
+        console.log(`Message: "Bonjour, votre inscription a été validée. Connectez-vous avec le code: ${code}"`);
+
+        return code;
+    };
+
     return (
         <AppContext.Provider value={{
             appointments,
@@ -199,7 +238,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             userGarage,
             loginGarage,
             logoutGarage,
-            updateGarageAvailability
+            updateGarageAvailability,
+            generateAccessCode
         }}>
             {children}
         </AppContext.Provider>

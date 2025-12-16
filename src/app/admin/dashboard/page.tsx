@@ -1,12 +1,21 @@
 "use client";
 
 import { useApp } from "@/context/AppContext";
+import { useState } from "react";
 
 export default function AdminDashboard() {
-  const { adminGarages, updateGarageStatus, appointments } = useApp();
+  const { adminGarages, updateGarageStatus, appointments, generateAccessCode } = useApp();
 
   const pendingCount = adminGarages.filter(g => g.status === "En attente").length;
   const activeCount = adminGarages.filter(g => g.status === "Actif").length;
+
+  const handleGenerateCode = (garageId: number) => {
+    const code = generateAccessCode(garageId);
+    if (code) {
+      alert(`Code généré avec succès !\n\nCode d'accès : ${code}\n\nUn email a été envoyé au garage (voir console).`);
+      updateGarageStatus(garageId, 'Actif');
+    }
+  };
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#F1F5F9' }}>
@@ -47,7 +56,11 @@ export default function AdminDashboard() {
               <tr>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Garage</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Ville</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Services</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Date</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>RDV</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Confirmés</th>
+                <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Facturation</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Statut</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'right' }}>Actions</th>
               </tr>
@@ -67,8 +80,31 @@ export default function AdminDashboard() {
                       {garage.status === 'En attente' && (
                         <div style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: 4 }}>• Action requise</div>
                       )}
+                      {garage.generatedCode && (
+                        <div style={{ fontSize: '0.75rem', color: '#10B981', marginTop: 4, fontFamily: 'monospace' }}>Code: {garage.generatedCode}</div>
+                      )}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', color: '#64748B' }}>{garage.city}</td>
+
+                    {/* Services Column */}
+                    <td style={{ padding: '1rem 1.5rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {garage.homeService && (
+                          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.4rem', backgroundColor: '#DBEAFE', color: '#1E40AF', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
+                            🏠 Domicile
+                          </span>
+                        )}
+                        {garage.courtesyVehicle && (
+                          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: '4px', display: 'inline-block', width: 'fit-content' }}>
+                            🚗 Courtoisie
+                          </span>
+                        )}
+                        {!garage.homeService && !garage.courtesyVehicle && (
+                          <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>-</span>
+                        )}
+                      </div>
+                    </td>
+
                     <td style={{ padding: '1rem 1.5rem', color: '#64748B' }}>{garage.registrationDate}</td>
 
                     {/* Stats Columns */}
@@ -95,14 +131,14 @@ export default function AdminDashboard() {
                         {garage.status === 'En attente' && (
                           <>
                             <button
-                              onClick={() => updateGarageStatus(garage.id, 'Actif')}
-                              title="Valider ce partenaire"
+                              onClick={() => handleGenerateCode(garage.id)}
+                              title="Générer code et valider"
                               style={{ padding: '0.4rem 0.8rem', backgroundColor: '#10b981', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
                             >
-                              ✓ Valider
+                              🔑 Générer Code
                             </button>
                             <button
-                              onClick={() => updateGarageStatus(garage.id, 'Suspendu')} // Treat as rejection
+                              onClick={() => updateGarageStatus(garage.id, 'Suspendu')}
                               title="Refuser ce partenaire"
                               style={{ padding: '0.4rem 0.8rem', backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#EF4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
                             >

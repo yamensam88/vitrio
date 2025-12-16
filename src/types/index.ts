@@ -24,4 +24,6 @@ export interface Garage {
     nextAvailability: string; // ISO Date
     image?: string; // Placeholder string
     accessCode?: string; // Code de connexion partenaire
+    homeService?: boolean; // Intervention à domicile/travail
+    courtesyVehicle?: boolean; // Véhicule de courtoisie
 }

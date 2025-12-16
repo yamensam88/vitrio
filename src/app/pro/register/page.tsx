@@ -19,7 +19,9 @@ export default function RegisterPro() {
         phone: "",
         offerType: 'finance' as 'finance' | 'gift',
         customName: "",
-        customValue: 0
+        customValue: 0,
+        homeService: false,
+        courtesyVehicle: false
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,8 +46,11 @@ export default function RegisterPro() {
         addGarage({
             name: formData.name,
             city: formData.city,
+            email: formData.email,
             offerDescription: description,
-            offerPrice: effectivePrice
+            offerPrice: effectivePrice,
+            homeService: formData.homeService,
+            courtesyVehicle: formData.courtesyVehicle
         });
 
         // Redirect to dashboard
@@ -221,6 +226,33 @@ export default function RegisterPro() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+
+                        {/* Services Section */}
+                        <div style={{ marginTop: '1rem', padding: '1rem', backgroundColor: '#F0FDF4', borderRadius: '8px', border: '1px solid #BBF7D0' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#166534' }}>Services Proposés</h3>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.homeService}
+                                        onChange={e => setFormData({ ...formData, homeService: e.target.checked })}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                    <span style={{ fontSize: '0.9rem', color: '#166534' }}>🏠 Intervention à domicile ou sur le lieu de travail</span>
+                                </label>
+
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.courtesyVehicle}
+                                        onChange={e => setFormData({ ...formData, courtesyVehicle: e.target.checked })}
+                                        style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                    />
+                                    <span style={{ fontSize: '0.9rem', color: '#166534' }}>🚗 Véhicule de courtoisie disponible</span>
+                                </label>
+                            </div>
                         </div>
 
                         <button
