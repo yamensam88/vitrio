@@ -131,6 +131,21 @@ export async function generateAccessCodeForGarage(adminGarageId: number) {
 
         if (garageCreateError) throw garageCreateError
 
+        // Create default offer for the garage
+        const { error: offerCreateError } = await supabase
+            .from('offers')
+            .insert({
+                id: `offer_${newGarageId}`,
+                garage_id: newGarageId,
+                price: 120,
+                currency: 'EUR',
+                description: 'Remplacement Standard',
+                availability: new Date().toISOString(),
+                service_duration: 120
+            })
+
+        if (offerCreateError) throw offerCreateError
+
         // Link the garage to admin_garage
         const { error: linkError } = await supabase
             .from('admin_garages')
