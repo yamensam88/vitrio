@@ -100,14 +100,44 @@ export async function generateAccessCodeForGarage(adminGarageId: number) {
 
     if (updateError) throw updateError
 
-    // If garage_id exists, update the garage's access_code
+    // Create or update garage in garages table
     if (adminGarage.garage_id) {
+        // Garage already exists, just update the access code
         const { error: garageUpdateError } = await supabase
             .from('garages')
             .update({ access_code: code })
             .eq('id', adminGarage.garage_id)
 
         if (garageUpdateError) throw garageUpdateError
+    } else {
+        // Create new garage
+        const newGarageId = `g_${adminGarageId}_${Date.now()}`
+        const { error: garageCreateError } = await supabase
+            .from('garages')
+            .insert({
+                id: newGarageId,
+                name: adminGarage.name,
+                address: `${adminGarage.city} Centre`,
+                city: adminGarage.city,
+                lat: 48.8566 + (Math.random() * 0.1),
+                lng: 2.3522 + (Math.random() * 0.1),
+                rating: 5.0,
+                next_availability: new Date().toISOString(),
+                image: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
+                access_code: code,
+                home_service: adminGarage.home_service || false,
+                courtesy_vehicle: adminGarage.courtesy_vehicle || false
+            })
+
+        if (garageCreateError) throw garageCreateError
+
+        // Link the garage to admin_garage
+        const { error: linkError } = await supabase
+            .from('admin_garages')
+            .update({ garage_id: newGarageId })
+            .eq('id', adminGarageId)
+
+        if (linkError) throw linkError
     }
 
     // Simulate email

@@ -189,9 +189,12 @@ export default function AdminDashboard() {
                             </button>
                           )}
                           {garage.status === 'Suspendu' && (
-                            <div style={{ color: '#94A3B8', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                              Rejeté / Suspendu
-                            </div>
+                            <button
+                              onClick={() => handleUpdateStatus(garage.id, 'Actif')}
+                              style={{ padding: '0.4rem 0.8rem', backgroundColor: '#10b981', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                            >
+                              ↻ Réactiver
+                            </button>
                           )}
                         </div>
                       </td>
