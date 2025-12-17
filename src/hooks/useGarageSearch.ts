@@ -65,11 +65,23 @@ export const useGarageSearch = () => {
 
             // Transform to match Garage interface
             return {
-                ...garage,
-                distance,
+                id: garage.id,
+                name: garage.name,
+                address: garage.address,
+                city: garage.city,
                 coordinates: { lat: garage.lat, lng: garage.lng },
+                rating: garage.rating,
                 nextAvailability: garage.next_availability,
-                offers: [] // TODO: Load offers from offers table
+                image: garage.image || 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
+                distance,
+                offers: [{
+                    id: `default_${garage.id}`,
+                    price: 120,
+                    currency: 'EUR',
+                    description: 'Remplacement Standard',
+                    availability: garage.next_availability,
+                    serviceDuration: 120
+                }]
             } as Garage;
         });
 
