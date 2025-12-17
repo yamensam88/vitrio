@@ -1,16 +1,33 @@
-import { useState, useMemo } from "react";
-import { Coordinates } from "@/types";
+import { useState, useMemo, useEffect } from "react";
+import { Coordinates, Garage } from "@/types";
 import { GeolocationService } from "@/services/GeolocationService";
-import { useApp } from "@/context/AppContext"; // Import Context
+import { getGarages } from "@/lib/supabase-service";
 
 export type SortOption = "distance" | "price" | "availability";
 
 export const useGarageSearch = () => {
-    const { searchableGarages } = useApp(); // Use Context State
+    const [garages, setGarages] = useState<Garage[]>([]);
+    const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
     const [sortBy, setSortBy] = useState<SortOption[]>(["distance"]);
     const [loadingLocation, setLoadingLocation] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Load garages from Supabase on mount
+    useEffect(() => {
+        async function loadGarages() {
+            try {
+                const data = await getGarages();
+                setGarages(data as Garage[]);
+            } catch (err) {
+                console.error('Error loading garages:', err);
+                setError("Erreur lors du chargement des garages");
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadGarages();
+    }, []);
 
     // Function to trigger geolocation
     const locateUser = async () => {
@@ -36,16 +53,24 @@ export const useGarageSearch = () => {
 
     // Main logic to process garages
     const processedGarages = useMemo(() => {
-        const results = searchableGarages.map((garage) => { // Use real list
+        const results = garages.map((garage) => {
             // Calculate distance if location is available
             let distance = undefined;
             if (userLocation) {
                 distance = GeolocationService.calculateDistance(
                     userLocation,
-                    garage.coordinates
+                    { lat: garage.lat, lng: garage.lng }
                 );
             }
-            return { ...garage, distance };
+
+            // Transform to match Garage interface
+            return {
+                ...garage,
+                distance,
+                coordinates: { lat: garage.lat, lng: garage.lng },
+                nextAvailability: garage.next_availability,
+                offers: [] // TODO: Load offers from offers table
+            } as Garage;
         });
 
         if (sortBy.length === 0) return results; // No sort
@@ -55,7 +80,7 @@ export const useGarageSearch = () => {
         const minDist = Math.min(...distances);
         const maxDist = Math.max(...distances);
 
-        const prices = results.map(g => Math.min(...g.offers.map(o => o.price)));
+        const prices = results.map(g => g.offers.length > 0 ? Math.min(...g.offers.map(o => o.price)) : 100);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
 
@@ -76,8 +101,8 @@ export const useGarageSearch = () => {
             }
 
             if (sortBy.includes("price")) {
-                const priceA = Math.min(...a.offers.map(o => o.price));
-                const priceB = Math.min(...b.offers.map(o => o.price));
+                const priceA = a.offers.length > 0 ? Math.min(...a.offers.map(o => o.price)) : 100;
+                const priceB = b.offers.length > 0 ? Math.min(...b.offers.map(o => o.price)) : 100;
                 scoreA += (1 - normalize(priceA, minPrice, maxPrice)) * 35; // Weight: 35
                 scoreB += (1 - normalize(priceB, minPrice, maxPrice)) * 35;
             }
@@ -93,12 +118,12 @@ export const useGarageSearch = () => {
         });
 
         return results;
-    }, [userLocation, sortBy]);
+    }, [garages, userLocation, sortBy]);
 
     return {
         garages: processedGarages,
         userLocation,
-        loadingLocation,
+        loadingLocation: loadingLocation || loading,
         locateUser,
         sortBy,
         setSortBy,
