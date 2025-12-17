@@ -2,47 +2,101 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useApp, Appointment } from "@/context/AppContext";
+import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability } from "@/lib/supabase-service";
+import type { Database } from "@/lib/supabase";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import Link from "next/link";
+
+type Garage = Database['public']['Tables']['garages']['Row'];
+type Appointment = Database['public']['Tables']['appointments']['Row'];
 
 export default function PartnerDashboard() {
-    const { appointments, updateAppointmentStatus, userGarage, logoutGarage, updateGarageAvailability } = useApp();
     const router = useRouter();
+    const [userGarage, setUserGarage] = useState<Garage | null>(null);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [availabilityInput, setAvailabilityInput] = useState("");
+    const [loading, setLoading] = useState(true);
 
-    // Protect Route
     useEffect(() => {
-        if (!userGarage) {
+        // Check if logged in (code in localStorage)
+        const code = localStorage.getItem('partner_access_code');
+        if (!code) {
             router.push('/pro/login');
-        } else {
-            // Initialize availability input
-            setAvailabilityInput(userGarage.nextAvailability.split('T')[0]);
+            return;
         }
-    }, [userGarage, router]);
 
-    if (!userGarage) return null; // Prevent flash
+        loadGarageData(code);
+    }, [router]);
 
-    const myAppointments = appointments.filter(a => a.garageId === userGarage.id);
+    async function loadGarageData(code: string) {
+        try {
+            const garage = await getGarageByAccessCode(code);
+            if (!garage) {
+                localStorage.removeItem('partner_access_code');
+                router.push('/pro/login');
+                return;
+            }
 
-    const toggleStatus = (id: number, currentStatus: Appointment['status']) => {
-        if (currentStatus === "En attente") updateAppointmentStatus(id, "Confirmé");
-        else if (currentStatus === "Confirmé") updateAppointmentStatus(id, "Terminé");
-    };
+            setUserGarage(garage);
+            setAvailabilityInput(garage.next_availability.split('T')[0]);
 
-    const handleUpdateAvailability = () => {
-        const newDate = new Date(availabilityInput).toISOString();
-        updateGarageAvailability(newDate);
-        alert("Disponibilité mise à jour !");
-    };
+            // Load appointments
+            const appts = await getAppointmentsByGarage(garage.id);
+            setAppointments(appts);
+        } catch (error) {
+            console.error('Error loading garage data:', error);
+            router.push('/pro/login');
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    async function handleToggleStatus(id: number, currentStatus: string) {
+        try {
+            const newStatus = currentStatus === "En attente" ? "Confirmé" : "Terminé";
+            await updateAppointmentStatus(id, newStatus);
+
+            // Reload appointments
+            if (userGarage) {
+                const appts = await getAppointmentsByGarage(userGarage.id);
+                setAppointments(appts);
+            }
+        } catch (error) {
+            console.error('Error updating appointment:', error);
+        }
+    }
+
+    async function handleUpdateAvailability() {
+        if (!userGarage) return;
+        try {
+            const newDate = new Date(availabilityInput).toISOString();
+            await updateGarageAvailability(userGarage.id, newDate);
+            alert("Disponibilité mise à jour !");
+        } catch (error) {
+            console.error('Error updating availability:', error);
+            alert("Erreur lors de la mise à jour");
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('partner_access_code');
+        router.push('/pro/login');
+    }
+
+    if (loading || !userGarage) {
+        return (
+            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div>Chargement...</div>
+            </div>
+        );
+    }
 
     // Calculate Stats
-    const revenue = myAppointments
-        .filter(a => a.status === 'Terminé' || (a.status === 'Confirmé' && a.billingTriggered))
+    const revenue = appointments
+        .filter(a => a.status === 'Terminé' || (a.status === 'Confirmé' && a.billing_triggered))
         .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const confirmedCount = myAppointments.filter(a => a.status === 'Confirmé' || a.status === 'Terminé').length;
+    const confirmedCount = appointments.filter(a => a.status === 'Confirmé' || a.status === 'Terminé').length;
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC' }}>
@@ -52,13 +106,13 @@ export default function PartnerDashboard() {
                     <div style={{ fontWeight: 800, fontSize: '1.25rem', color: 'var(--color-primary)' }}>Vitrio <span style={{ color: 'var(--color-text-main)', fontWeight: 400 }}>Pro</span></div>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                         <span style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)' }}>{userGarage.name}</span>
-                        <button onClick={logoutGarage} style={{ fontSize: '0.85rem', color: '#EF4444', textDecoration: 'underline' }}>Se déconnecter</button>
+                        <button onClick={handleLogout} style={{ fontSize: '0.85rem', color: '#EF4444', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>Se déconnecter</button>
                     </div>
                 </div>
             </header>
 
             <main className="container" style={{ padding: '2rem 1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
                     <h1 style={{ margin: 0 }}>Tableau de Bord</h1>
 
                     {/* Availability Management */}
@@ -99,9 +153,9 @@ export default function PartnerDashboard() {
                         <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Vos Rendez-vous</h2>
                     </div>
                     <div>
-                        {myAppointments.length === 0 ? (
+                        {appointments.length === 0 ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: '#94A3B8' }}>Aucun rendez-vous pour le moment.</div>
-                        ) : myAppointments.map(app => (
+                        ) : appointments.map(app => (
                             <div key={app.id} style={{
                                 display: 'grid',
                                 gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -119,7 +173,7 @@ export default function PartnerDashboard() {
                                         userSelect: app.status === 'En attente' ? 'none' : 'auto',
                                         transition: 'filter 0.3s ease'
                                     }}>
-                                        {app.clientName}
+                                        {app.client_name}
                                     </div>
                                     <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginTop: 4 }}>
                                         {app.status === 'En attente' ? (
@@ -155,7 +209,7 @@ export default function PartnerDashboard() {
                                     }}>
                                         {app.status}
                                     </span>
-                                    {app.billingTriggered && (
+                                    {app.billing_triggered && (
                                         <span style={{ marginLeft: '0.5rem', fontSize: '0.8rem', color: '#059669', fontWeight: 700 }}>
                                             ✓ Facturé
                                         </span>
@@ -166,7 +220,7 @@ export default function PartnerDashboard() {
                                     {app.status === 'En attente' && (
                                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
                                             <button
-                                                onClick={() => toggleStatus(app.id, app.status)}
+                                                onClick={() => handleToggleStatus(app.id, app.status)}
                                                 className="btn"
                                                 style={{
                                                     padding: '0.5rem 1rem',
@@ -182,7 +236,7 @@ export default function PartnerDashboard() {
                                     )}
                                     {app.status === 'Confirmé' && (
                                         <button
-                                            onClick={() => toggleStatus(app.id, app.status)}
+                                            onClick={() => handleToggleStatus(app.id, app.status)}
                                             className="btn"
                                             style={{
                                                 padding: '0.5rem 1rem',

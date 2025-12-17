@@ -1,28 +1,41 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '@/context/AppContext';
+import { getGarageByAccessCode } from '@/lib/supabase-service';
 import Link from 'next/link';
 
 export default function PartnerLogin() {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const { loginGarage, userGarage } = useApp();
 
-    if (userGarage) {
-        router.push('/pro/dashboard');
-        return null;
-    }
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        const success = loginGarage(code);
-        if (success) {
+    useEffect(() => {
+        // Check if already logged in
+        const savedCode = localStorage.getItem('partner_access_code');
+        if (savedCode) {
             router.push('/pro/dashboard');
-        } else {
-            setError("Code invalide. Essayez 1234, 2222, 3333 ou 4444.");
+        }
+    }, [router]);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const garage = await getGarageByAccessCode(code);
+            if (garage) {
+                localStorage.setItem('partner_access_code', code);
+                router.push('/pro/dashboard');
+            } else {
+                setError("Code invalide. Veuillez vérifier votre code d'accès.");
+            }
+        } catch (err) {
+            setError("Erreur de connexion. Veuillez réessayer.");
+        } finally {
+            setLoading(false);
         }
     };
 

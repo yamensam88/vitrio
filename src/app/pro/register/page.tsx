@@ -3,11 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/context/AppContext";
+import { createAdminGarage } from "@/lib/supabase-service";
 
 export default function RegisterPro() {
     const router = useRouter();
-    const { addGarage } = useApp();
     const [loading, setLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -28,33 +27,40 @@ export default function RegisterPro() {
         e.preventDefault();
         setLoading(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        try {
+            // Logic to construct offer
+            let description = "";
+            let effectivePrice = 0;
 
-        // Logic to construct offer
-        let description = "";
-        let effectivePrice = 0;
+            if (formData.offerType === 'finance') {
+                description = `Franchise offerte (jusqu'à ${formData.customValue}€)`;
+                effectivePrice = -formData.customValue;
+            } else {
+                description = `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`;
+                effectivePrice = -formData.customValue;
+            }
 
-        if (formData.offerType === 'finance') {
-            description = `Franchise offerte (jusqu'à ${formData.customValue}€)`;
-            effectivePrice = -formData.customValue; // Negative price favors sorting
-        } else {
-            description = `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`;
-            effectivePrice = -formData.customValue;
+            // Create admin garage in Supabase
+            await createAdminGarage({
+                name: formData.name,
+                city: formData.city,
+                email: formData.email,
+                status: 'En attente',
+                registration_date: new Date().toISOString().split('T')[0],
+                garage_id: null,
+                generated_code: null,
+                home_service: formData.homeService,
+                courtesy_vehicle: formData.courtesyVehicle
+            });
+
+            alert('Inscription envoyée ! Vous recevrez un email avec votre code d\'accès une fois validé par l\'admin.');
+            router.push('/pro');
+        } catch (error) {
+            console.error('Error creating garage:', error);
+            alert('Erreur lors de l\'inscription. Veuillez réessayer.');
+        } finally {
+            setLoading(false);
         }
-
-        addGarage({
-            name: formData.name,
-            city: formData.city,
-            email: formData.email,
-            offerDescription: description,
-            offerPrice: effectivePrice,
-            homeService: formData.homeService,
-            courtesyVehicle: formData.courtesyVehicle
-        });
-
-        // Redirect to dashboard
-        router.push('/pro/dashboard');
     };
 
     return (
