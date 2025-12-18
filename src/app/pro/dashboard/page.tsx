@@ -63,40 +63,28 @@ export default function PartnerDashboard() {
         }
     }
 
-    async function handleAddAvailability(date: Date) {
+    async function handleSlotToggle(date: Date, existingSlot?: any) {
         if (!userGarage) return;
 
-        const timeStr = prompt("Heure du créneau (ex: 09:00) :", "09:00");
-        if (!timeStr) return;
-
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const startTime = setHours(setMinutes(date, minutes || 0), hours || 0);
-        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h default
-
         try {
-            await addGarageAvailability({
-                garage_id: userGarage.id,
-                start_time: startTime.toISOString(),
-                end_time: endTime.toISOString(),
-                is_available: true
-            });
-
-            // Refresh
-            const avs = await getGarageAvailabilities(userGarage.id);
-            setAvailabilities(avs);
+            if (existingSlot) {
+                // If it exists, we remove it (toggle off)
+                await deleteGarageAvailability(existingSlot.id);
+                setAvailabilities(prev => prev.filter(av => av.id !== existingSlot.id));
+            } else {
+                // If it doesn't exist, we add it (toggle on)
+                const endTime = new Date(date.getTime() + 30 * 60 * 1000); // 30 min duration
+                const newAv = await addGarageAvailability({
+                    garage_id: userGarage.id,
+                    start_time: date.toISOString(),
+                    end_time: endTime.toISOString(),
+                    is_available: true
+                });
+                setAvailabilities(prev => [...prev, newAv]);
+            }
         } catch (error) {
-            console.error('Error adding availability:', error);
-            alert("Erreur lors de l'ajout");
-        }
-    }
-
-    async function handleDeleteAvailability(id: string) {
-        if (!confirm("Supprimer ce créneau ?")) return;
-        try {
-            await deleteGarageAvailability(id);
-            setAvailabilities(prev => prev.filter(av => av.id !== id));
-        } catch (error) {
-            console.error('Error deleting availability:', error);
+            console.error('Error toggling slot:', error);
+            alert("Erreur lors de la modification du créneau");
         }
     }
 
@@ -153,14 +141,18 @@ export default function PartnerDashboard() {
 
             <main className="container" style={{ padding: '2rem 1rem' }}>
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1 style={{ marginBottom: '1.5rem' }}>Tableau de Bord</h1>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                        <div>
+                            <h1 style={{ margin: 0 }}>Gestion de l'Agenda</h1>
+                            <p style={{ color: '#64748b', margin: '0.25rem 0 0' }}>Cliquez sur les créneaux pour ouvrir ou fermer vos disponibilités.</p>
+                        </div>
+                    </div>
 
-                    {/* New Calendar System */}
-                    <Calendar
+                    <TimeSlotPicker
+                        mode="PARTNER"
                         appointments={appointments}
                         availabilities={availabilities}
-                        onAddAvailability={handleAddAvailability}
-                        onDeleteAvailability={handleDeleteAvailability}
+                        onSlotClick={handleSlotToggle}
                     />
                 </div>
 
