@@ -1,19 +1,47 @@
 import { Garage, Offer } from "@/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
+import { getGarageAvailabilities, getAppointmentsByGarage } from "@/lib/supabase-service";
+import TimeSlotPicker from "./TimeSlotPicker";
 
 interface BookingModalProps {
     garage: Garage;
     onClose: () => void;
 }
 
-type Step = "OFFER" | "INFO" | "DOCS" | "CONFIRM";
+type Step = "OFFER" | "DATE" | "INFO" | "DOCS" | "CONFIRM";
 
 export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     const [step, setStep] = useState<Step>("OFFER");
     const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+    const [availabilities, setAvailabilities] = useState<any[]>([]);
+    const [appointments, setAppointments] = useState<any[]>([]);
+    const [loadingData, setLoadingData] = useState(false);
+
+    useEffect(() => {
+        if (garage.id) {
+            loadSlotData();
+        }
+    }, [garage.id]);
+
+    async function loadSlotData() {
+        setLoadingData(true);
+        try {
+            const [avs, appts] = await Promise.all([
+                getGarageAvailabilities(garage.id),
+                getAppointmentsByGarage(garage.id)
+            ]);
+            setAvailabilities(avs);
+            setAppointments(appts);
+        } catch (error) {
+            console.error("Error loading slot data:", error);
+        } finally {
+            setLoadingData(false);
+        }
+    }
 
     // Form State
     const [formData, setFormData] = useState({
@@ -35,13 +63,15 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     });
 
     const handleNext = () => {
-        if (step === "OFFER" && selectedOffer) setStep("INFO");
+        if (step === "OFFER" && selectedOffer) setStep("DATE");
+        else if (step === "DATE" && selectedDate) setStep("INFO");
         else if (step === "INFO") setStep("DOCS");
         else if (step === "DOCS") setStep("CONFIRM");
     };
 
     const handleBack = () => {
-        if (step === "INFO") setStep("OFFER");
+        if (step === "DATE") setStep("OFFER");
+        else if (step === "INFO") setStep("DATE");
         else if (step === "DOCS") setStep("INFO");
     };
 
@@ -55,11 +85,11 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     const { addAppointment } = useApp();
 
     const handleConfirm = () => {
-        if (selectedOffer) {
+        if (selectedOffer && selectedDate) {
             addAppointment({
                 clientName: `${formData.firstName} ${formData.lastName}`,
-                vehicle: "Véhicule Client", // In a real app we would ask for car model
-                date: garage.nextAvailability,
+                vehicle: "Véhicule Client",
+                date: selectedDate.toISOString(),
                 amount: selectedOffer.price,
                 garageId: garage.id,
                 offers: [selectedOffer.description],
@@ -71,12 +101,10 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     };
 
     const renderStepIndicator = () => (
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-            {/* 1. Offre */}
-            <div style={{ flex: 1, height: '4px', background: step === 'OFFER' ? 'var(--color-primary)' : step === 'CONFIRM' ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
-            {/* 2. Infos */}
+        <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', alignItems: 'center' }}>
+            <div style={{ flex: 1, height: '4px', background: step === 'OFFER' ? 'var(--color-primary)' : (step !== 'OFFER') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : (step === 'INFO' || step === 'DOCS' || step === 'CONFIRM') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
             <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (step === 'DOCS' || step === 'CONFIRM') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
-            {/* 3. Docs */}
             <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : step === 'CONFIRM' ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
         </div>
     );
@@ -287,7 +315,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                             <ul style={{ textAlign: 'left', fontSize: '0.9rem', color: '#15803D', paddingLeft: '1.5rem', lineHeight: 1.6 }}>
                                 <li>Le garage va vérifier votre dossier assurance sous 24h.</li>
                                 <li>Si tout est complet, vous n'aurez rien à avancer.</li>
-                                <li>Présentez-vous le <strong>{format(new Date(garage.nextAvailability), "dd MMM à HH:mm", { locale: fr })}</strong>.</li>
+                                <li>Présentez-vous le <strong>{selectedDate ? format(selectedDate, "dd MMM à HH:mm", { locale: fr }) : ''}</strong>.</li>
                             </ul>
                         </div>
                         <button
