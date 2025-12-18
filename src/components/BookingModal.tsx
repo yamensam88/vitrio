@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
-import { getGarageAvailabilities, getAppointmentsByGarage } from "@/lib/supabase-service";
+import { getGarageAvailabilities, getAppointmentsByGarage, createAppointment } from "@/lib/supabase-service";
 import TimeSlotPicker from "./TimeSlotPicker";
 
 interface BookingModalProps {
@@ -20,6 +20,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [appointments, setAppointments] = useState<any[]>([]);
     const [loadingData, setLoadingData] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         if (garage.id) {
@@ -82,19 +83,41 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
 
     const { addAppointment } = useApp();
 
-    const handleConfirm = () => {
+    const handleConfirm = async () => {
         if (selectedOffer && selectedDate) {
-            addAppointment({
-                clientName: `${formData.firstName} ${formData.lastName}`,
-                vehicle: "Véhicule Client",
-                date: selectedDate.toISOString(),
-                amount: selectedOffer.price,
-                garageId: garage.id,
-                offers: [selectedOffer.description],
-                email: formData.email,
-                phone: formData.phone
-            });
-            setStep("CONFIRM");
+            setIsSubmitting(true);
+            try {
+                await createAppointment({
+                    client_name: `${formData.firstName} ${formData.lastName}`,
+                    vehicle: "Véhicule Client",
+                    date: selectedDate.toISOString(),
+                    amount: selectedOffer.price,
+                    garage_id: garage.id,
+                    offers: [selectedOffer.description],
+                    email: formData.email,
+                    phone: formData.phone,
+                    status: "En attente"
+                });
+
+                // Also add to local context as a fallback/instant update
+                addAppointment({
+                    clientName: `${formData.firstName} ${formData.lastName}`,
+                    vehicle: "Véhicule Client",
+                    date: selectedDate.toISOString(),
+                    amount: selectedOffer.price,
+                    garageId: garage.id,
+                    offers: [selectedOffer.description],
+                    email: formData.email,
+                    phone: formData.phone
+                });
+
+                setStep("CONFIRM");
+            } catch (error) {
+                console.error("Error creating appointment:", error);
+                alert("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     };
 
@@ -282,9 +305,10 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                             <button
                                 className="btn btn-primary"
                                 style={{ flex: 2 }}
+                                disabled={isSubmitting}
                                 onClick={handleConfirm}
                             >
-                                Valider le rendez-vous
+                                {isSubmitting ? "Validation en cours..." : "Valider le rendez-vous"}
                             </button>
                         </div>
                     </div>
