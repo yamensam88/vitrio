@@ -6,7 +6,7 @@ import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus
 import type { Database } from "@/lib/supabase";
 import { format, setHours, setMinutes } from "date-fns";
 import { fr } from "date-fns/locale";
-import Calendar from "@/components/Calendar";
+import TimeSlotPicker from "@/components/TimeSlotPicker";
 
 type Garage = Database['public']['Tables']['garages']['Row'];
 type Appointment = Database['public']['Tables']['appointments']['Row'];
@@ -17,6 +17,7 @@ export default function PartnerDashboard() {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         // Check if logged in (code in localStorage)
@@ -31,25 +32,32 @@ export default function PartnerDashboard() {
 
     async function loadGarageData(code: string) {
         try {
+            console.log("DEBUG: Loading garage data for code:", code);
             const garage = await getGarageByAccessCode(code);
+            console.log("DEBUG: Garage found:", garage?.id);
+
             if (!garage) {
+                console.warn("DEBUG: No garage found for this code");
+                setError("Session expirée ou code invalide. Redirection vers la page de connexion...");
                 localStorage.removeItem('partner_access_code');
-                router.push('/pro/login');
+                setTimeout(() => router.push('/pro/login'), 2000);
                 return;
             }
 
             setUserGarage(garage);
 
             // Load appointments and availabilities in parallel
+            console.log("DEBUG: Fetching appts and avs...");
             const [appts, avs] = await Promise.all([
                 getAppointmentsByGarage(garage.id),
                 getGarageAvailabilities(garage.id)
             ]);
+            console.log("DEBUG: Data fetched successfully");
             setAppointments(appts);
             setAvailabilities(avs);
-        } catch (error) {
-            console.error('Error loading garage data:', error);
-            router.push('/pro/login');
+        } catch (error: any) {
+            console.error('CRITICAL ERROR loading garage data:', error);
+            setError("Erreur de chargement des données. Veuillez vérifier votre connexion.");
         } finally {
             setLoading(false);
         }
@@ -116,8 +124,9 @@ export default function PartnerDashboard() {
 
     if (loading || !userGarage) {
         return (
-            <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <div>Chargement...</div>
+                {error && <div style={{ color: '#EF4444', marginTop: '1rem', fontWeight: 600 }}>{error}</div>}
             </div>
         );
     }
