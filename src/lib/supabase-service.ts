@@ -35,6 +35,7 @@ export async function getGarageById(id: string) {
 }
 
 export async function getGarageByAccessCode(code: string) {
+    console.log("DEBUG: Calling getGarageByAccessCode with code:", code);
     const { data, error } = await supabase
         .from('garages')
         .select(`
@@ -44,11 +45,35 @@ export async function getGarageByAccessCode(code: string) {
         .eq('access_code', code)
         .single()
 
-    if (error) return null
+    if (error) {
+        console.error("DEBUG: Error in getGarageByAccessCode:", error);
+        return null;
+    }
 
-    // Transform to include status in a cleaner way if needed, 
-    // but the inner join already filters for existence and provides status
-    return data as (Garage & { admin_garages: { status: string } })
+    console.log("DEBUG: getGarageByAccessCode data structure:", {
+        id: data.id,
+        admin_garages_type: typeof data.admin_garages,
+        is_array: Array.isArray(data.admin_garages)
+    });
+
+    // Transform to ensure status is accessible correctly whether it's an object or an array of 1
+    const garageData = data as any;
+    let status = 'Inconnu';
+
+    if (garageData.admin_garages) {
+        if (Array.isArray(garageData.admin_garages)) {
+            status = garageData.admin_garages[0]?.status || 'Inconnu';
+        } else {
+            status = garageData.admin_garages.status || 'Inconnu';
+        }
+    }
+
+    console.log("DEBUG: Extracted status:", status);
+
+    return {
+        ...garageData,
+        normalized_status: status
+    };
 }
 
 export async function updateGarageAvailability(id: string, nextAvailability: string) {

@@ -25,9 +25,14 @@ export default function PartnerLogin() {
         setError('');
 
         try {
-            const garage = await getGarageByAccessCode(code);
+            console.log("DEBUG: Attempting login with code:", code);
+            const garage = await getGarageByAccessCode(code) as any;
+            console.log("DEBUG: Garage found in login:", garage?.id, "Status:", garage?.normalized_status);
+
             if (garage) {
-                if (garage.admin_garages.status !== 'Actif') {
+                const status = (garage.normalized_status || '').toLowerCase();
+                if (status !== 'actif') {
+                    console.warn("DEBUG: Login blocked due to status:", garage.normalized_status);
                     setError("Votre compte est actuellement suspendu. Veuillez contacter l'administration.");
                     return;
                 }
@@ -37,6 +42,7 @@ export default function PartnerLogin() {
                 setError("Code invalide. Veuillez vérifier votre code d'accès.");
             }
         } catch (err) {
+            console.error("DEBUG: Login error:", err);
             setError("Erreur de connexion. Veuillez réessayer.");
         } finally {
             setLoading(false);
