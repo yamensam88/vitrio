@@ -44,6 +44,13 @@ export default function PartnerDashboard() {
                 return;
             }
 
+            if (garage.admin_garages.status !== 'Actif') {
+                setError("Votre compte est actuellement suspendu. Redirection...");
+                localStorage.removeItem('partner_access_code');
+                setTimeout(() => router.push('/pro/login'), 2000);
+                return;
+            }
+
             setUserGarage(garage);
 
             // Load appointments and availabilities in parallel

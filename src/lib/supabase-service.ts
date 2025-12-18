@@ -37,12 +37,18 @@ export async function getGarageById(id: string) {
 export async function getGarageByAccessCode(code: string) {
     const { data, error } = await supabase
         .from('garages')
-        .select('*')
+        .select(`
+            *,
+            admin_garages!inner(status)
+        `)
         .eq('access_code', code)
         .single()
 
     if (error) return null
-    return data as Garage
+
+    // Transform to include status in a cleaner way if needed, 
+    // but the inner join already filters for existence and provides status
+    return data as (Garage & { admin_garages: { status: string } })
 }
 
 export async function updateGarageAvailability(id: string, nextAvailability: string) {

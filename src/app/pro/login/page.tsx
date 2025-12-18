@@ -27,6 +27,10 @@ export default function PartnerLogin() {
         try {
             const garage = await getGarageByAccessCode(code);
             if (garage) {
+                if (garage.admin_garages.status !== 'Actif') {
+                    setError("Votre compte est actuellement suspendu. Veuillez contacter l'administration.");
+                    return;
+                }
                 localStorage.setItem('partner_access_code', code);
                 router.push('/pro/dashboard');
             } else {
