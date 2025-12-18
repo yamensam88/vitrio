@@ -102,10 +102,10 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
 
     const renderStepIndicator = () => (
         <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-            <div style={{ flex: 1, height: '4px', background: step === 'OFFER' ? 'var(--color-primary)' : (step !== 'OFFER') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : (step === 'INFO' || step === 'DOCS' || step === 'CONFIRM') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (step === 'DOCS' || step === 'CONFIRM') ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : step === 'CONFIRM' ? '#10b981' : '#E2E8F0', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'OFFER' ? 'var(--color-primary)' : '#10b981', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : (step === 'OFFER' ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (['OFFER', 'DATE'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : (['OFFER', 'DATE', 'INFO'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
         </div>
     );
 
