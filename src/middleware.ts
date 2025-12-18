@@ -17,9 +17,6 @@ export async function middleware(request: NextRequest) {
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
             const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-            // Create Supabase client
-            const supabase = createClient(supabaseUrl, supabaseAnonKey)
-
             // Get session from cookies
             const token = request.cookies.get('sb-access-token')?.value
             const refreshToken = request.cookies.get('sb-refresh-token')?.value
@@ -30,10 +27,20 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(loginUrl)
             }
 
+            // Create Supabase client with the user's token in headers for RLS
+            const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+                global: {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            })
+
             // Verify token with Supabase - use getUser for server-side verification
             const { data: { user }, error: userError } = await supabase.auth.getUser(token)
 
             if (userError || !user) {
+                console.error("Middleware Auth Error:", userError)
                 // Invalid session, redirect to login
                 const loginUrl = new URL('/admin/login', request.url)
                 return NextResponse.redirect(loginUrl)
@@ -47,6 +54,7 @@ export async function middleware(request: NextRequest) {
                 .single()
 
             if (adminError || !adminUser) {
+                console.error("Middleware Admin Check Failed:", adminError || "User not in admin_users")
                 // Not an admin, redirect to login
                 const loginUrl = new URL('/admin/login', request.url)
                 return NextResponse.redirect(loginUrl)
