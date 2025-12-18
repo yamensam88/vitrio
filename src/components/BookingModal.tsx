@@ -11,11 +11,11 @@ interface BookingModalProps {
     onClose: () => void;
 }
 
-type Step = "OFFER" | "DATE" | "INFO" | "DOCS" | "CONFIRM";
+type Step = "DATE" | "INFO" | "DOCS" | "CONFIRM";
 
 export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
-    const [step, setStep] = useState<Step>("OFFER");
-    const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
+    const [step, setStep] = useState<Step>("DATE");
+    const [selectedOffer, setSelectedOffer] = useState<Offer | null>(garage.offers[0] || null);
     const [selectedDate, setSelectedDate] = useState<Date | null>(null);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [appointments, setAppointments] = useState<any[]>([]);
@@ -63,15 +63,13 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     });
 
     const handleNext = () => {
-        if (step === "OFFER" && selectedOffer) setStep("DATE");
-        else if (step === "DATE" && selectedDate) setStep("INFO");
+        if (step === "DATE" && selectedDate) setStep("INFO");
         else if (step === "INFO") setStep("DOCS");
         else if (step === "DOCS") setStep("CONFIRM");
     };
 
     const handleBack = () => {
-        if (step === "DATE") setStep("OFFER");
-        else if (step === "INFO") setStep("DATE");
+        if (step === "INFO") setStep("DATE");
         else if (step === "DOCS") setStep("INFO");
     };
 
@@ -102,10 +100,9 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
 
     const renderStepIndicator = () => (
         <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', alignItems: 'center' }}>
-            <div style={{ flex: 1, height: '4px', background: step === 'OFFER' ? 'var(--color-primary)' : '#10b981', borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : (step === 'OFFER' ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (['OFFER', 'DATE'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : (['OFFER', 'DATE', 'INFO'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : '#10b981', borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (step === 'DATE' ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
+            <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : (['DATE', 'INFO'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
         </div>
     );
 
@@ -153,52 +150,11 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     </>
                 )}
 
-                {/* STEP 1: OFFER SELECTION */}
-                {step === "OFFER" && (
-                    <div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>1. Choisissez votre prise en charge</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                            {garage.offers.map(offer => (
-                                <div key={offer.id}
-                                    onClick={() => setSelectedOffer(offer)}
-                                    style={{
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        padding: '1rem',
-                                        border: '1px solid',
-                                        borderColor: selectedOffer?.id === offer.id ? 'var(--color-primary)' : '#E2E8F0',
-                                        backgroundColor: selectedOffer?.id === offer.id ? '#EFF6FF' : 'white',
-                                        borderRadius: 'var(--radius-md)',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    <div>
-                                        <div style={{ fontWeight: 600, color: 'var(--color-text-main)' }}>{offer.description}</div>
-                                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>~ {offer.serviceDuration} min</div>
-                                    </div>
-                                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--color-primary)' }}>
-                                        {offer.price}€
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            className="btn btn-primary"
-                            style={{ width: '100%' }}
-                            disabled={!selectedOffer}
-                            onClick={handleNext}
-                        >
-                            Suivant &rarr;
-                        </button>
-                    </div>
-                )}
 
-                {/* STEP 2: DATE & TIME SELECTION */}
+                {/* STEP 1: DATE & TIME SELECTION */}
                 {step === "DATE" && (
                     <div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>2. Choix de la date & heure</h3>
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>1. Choix de la date & heure</h3>
 
                         {loadingData ? (
                             <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Chargement des créneaux...</div>
@@ -215,7 +171,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                         )}
 
                         <div style={{ display: 'flex', gap: '1rem' }}>
-                            <button className="btn" style={{ flex: 1, background: '#F1F5F9' }} onClick={handleBack}>Retour</button>
+                            <button className="btn" style={{ flex: 1, background: '#F1F5F9' }} onClick={onClose}>Annuler</button>
                             <button
                                 className="btn btn-primary"
                                 style={{ flex: 2 }}
@@ -228,7 +184,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     </div>
                 )}
 
-                {/* STEP 3: PERSONAL INFO */}
+                {/* STEP 2: PERSONAL INFO */}
                 {step === "INFO" && (
                     <div>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>2. Vos Coordonnées</h3>
