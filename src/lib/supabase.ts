@@ -76,6 +76,17 @@ export type Database = {
                 Insert: Database['public']['Tables']['offers']['Row']
                 Update: Partial<Database['public']['Tables']['offers']['Insert']>
             }
+            admin_users: {
+                Row: {
+                    id: string
+                    email: string
+                    full_name: string | null
+                    role: string
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['admin_users']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['admin_users']['Insert']>
+            }
         }
     }
 }

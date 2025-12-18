@@ -2,11 +2,14 @@ import { useState, useMemo, useEffect } from "react";
 import { Coordinates, Garage } from "@/types";
 import { GeolocationService } from "@/services/GeolocationService";
 import { getGarages } from "@/lib/supabase-service";
+import type { Database } from "@/lib/supabase";
+
+type RawGarage = Database['public']['Tables']['garages']['Row'];
 
 export type SortOption = "distance" | "price" | "availability";
 
 export const useGarageSearch = () => {
-    const [garages, setGarages] = useState<Garage[]>([]);
+    const [garages, setGarages] = useState<RawGarage[]>([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
     const [sortBy, setSortBy] = useState<SortOption[]>(["distance"]);
@@ -18,7 +21,7 @@ export const useGarageSearch = () => {
         async function loadGarages() {
             try {
                 const data = await getGarages();
-                setGarages(data as Garage[]);
+                setGarages(data);
             } catch (err) {
                 console.error('Error loading garages:', err);
                 setError("Erreur lors du chargement des garages");

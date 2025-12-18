@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments } from "@/lib/supabase-service";
+import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase-admin";
+import { useRouter } from "next/navigation";
 import type { Database } from "@/lib/supabase";
 
 type AdminGarage = Database['public']['Tables']['admin_garages']['Row'];
@@ -11,10 +13,27 @@ export default function AdminDashboard() {
   const [adminGarages, setAdminGarages] = useState<AdminGarage[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adminEmail, setAdminEmail] = useState<string>('');
+  const router = useRouter();
 
   useEffect(() => {
-    loadData();
+    checkAuthAndLoadData();
   }, []);
+
+  async function checkAuthAndLoadData() {
+    try {
+      const admin = await getCurrentAdmin();
+      if (!admin) {
+        router.push('/admin/login');
+        return;
+      }
+      setAdminEmail(admin.adminUser.email);
+      await loadData();
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      router.push('/admin/login');
+    }
+  }
 
   async function loadData() {
     try {
@@ -28,6 +47,15 @@ export default function AdminDashboard() {
       console.error('Error loading data:', error);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    try {
+      await signOutAdmin();
+      router.push('/admin/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
     }
   }
 
@@ -69,7 +97,24 @@ export default function AdminDashboard() {
       <header style={{ backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', padding: '1rem 0' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontWeight: 800, fontSize: '1.25rem', color: '#1e293b' }}>Vitrio <span style={{ color: '#ef4444', fontWeight: 400 }}>Admin</span></div>
-          <div style={{ fontSize: '0.9rem', color: '#64748B' }}>Super Admin</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ fontSize: '0.9rem', color: '#64748B' }}>{adminEmail}</div>
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#FEF2F2',
+                border: '1px solid #FECACA',
+                color: '#EF4444',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 600
+              }}
+            >
+              Déconnexion
+            </button>
+          </div>
         </div>
       </header>
 
