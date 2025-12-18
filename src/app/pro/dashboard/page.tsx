@@ -107,17 +107,7 @@ export default function PartnerDashboard() {
         }
     }
 
-    async function handleUpdateAvailability() {
-        if (!userGarage) return;
-        try {
-            const newDate = new Date(availabilityInput).toISOString();
-            await updateGarageAvailability(userGarage.id, newDate);
-            alert("Disponibilité mise à jour !");
-        } catch (error) {
-            console.error('Error updating availability:', error);
-            alert("Erreur lors de la mise à jour");
-        }
-    }
+
 
     function handleLogout() {
         localStorage.removeItem('partner_access_code');

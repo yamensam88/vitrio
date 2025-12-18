@@ -239,3 +239,44 @@ export async function getOffersByGarage(garageId: string) {
     if (error) throw error
     return data as Offer[]
 }
+
+// Availabilities
+export async function getGarageAvailabilities(garageId: string) {
+    const { data, error } = await supabase
+        .from('garage_availabilities')
+        .select('*')
+        .eq('garage_id', garageId)
+        .order('start_time', { ascending: true })
+
+    if (error) throw error
+    return data as GarageAvailability[]
+}
+
+export async function addGarageAvailability(availability: Database['public']['Tables']['garage_availabilities']['Insert']) {
+    const { data, error } = await supabase
+        .from('garage_availabilities')
+        .insert(availability)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data as GarageAvailability
+}
+
+export async function deleteGarageAvailability(id: string) {
+    const { error } = await supabase
+        .from('garage_availabilities')
+        .delete()
+        .eq('id', id)
+
+    if (error) throw error
+}
+
+export async function updateGarageAvailabilitySlot(id: string, isAvailable: boolean) {
+    const { error } = await supabase
+        .from('garage_availabilities')
+        .update({ is_available: isAvailable })
+        .eq('id', id)
+
+    if (error) throw error
+}
