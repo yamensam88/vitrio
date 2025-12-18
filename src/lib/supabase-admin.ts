@@ -22,7 +22,7 @@ export async function signInAdmin(email: string, password: string) {
         throw new Error('Unauthorized: Not an admin user')
     }
 
-    return { user: data.user, adminUser }
+    return { session: data.session, user: data.user, adminUser }
 }
 
 export async function signOutAdmin() {

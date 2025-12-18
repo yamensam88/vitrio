@@ -53,6 +53,9 @@ export default function AdminDashboard() {
   async function handleLogout() {
     try {
       await signOutAdmin();
+      // Clear cookies
+      document.cookie = "sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      document.cookie = "sb-refresh-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
       router.push('/admin/login');
     } catch (error) {
       console.error('Error logging out:', error);

@@ -30,10 +30,10 @@ export async function middleware(request: NextRequest) {
                 return NextResponse.redirect(loginUrl)
             }
 
-            // Verify session with Supabase
-            const { data: { session }, error } = await supabase.auth.getSession()
+            // Verify token with Supabase - use getUser for server-side verification
+            const { data: { user }, error: userError } = await supabase.auth.getUser(token)
 
-            if (error || !session) {
+            if (userError || !user) {
                 // Invalid session, redirect to login
                 const loginUrl = new URL('/admin/login', request.url)
                 return NextResponse.redirect(loginUrl)
@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
             const { data: adminUser, error: adminError } = await supabase
                 .from('admin_users')
                 .select('*')
-                .eq('email', session.user.email)
+                .eq('email', user.email)
                 .single()
 
             if (adminError || !adminUser) {

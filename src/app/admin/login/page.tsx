@@ -35,9 +35,18 @@ export default function AdminLogin() {
         setError('');
 
         try {
-            await signInAdmin(email, password);
+            const result = await signInAdmin(email, password);
+
+            // Set cookies for middleware
+            const { session } = result;
+            if (session) {
+                document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=${session.expires_in}; SameSite=Lax`;
+                document.cookie = `sb-refresh-token=${session.refresh_token}; path=/; max-age=${session.expires_in}; SameSite=Lax`;
+            }
+
             router.push('/admin/dashboard');
         } catch (err: any) {
+            console.error("DEBUG LOGIN ERROR:", err);
             setError(err.message || "Identifiants invalides. Veuillez réessayer.");
         } finally {
             setLoading(false);
