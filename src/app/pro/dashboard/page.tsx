@@ -28,7 +28,7 @@ export default function PartnerDashboard() {
         }
 
         loadGarageData(code);
-    }, [router]);
+    }, []); // Run only once on mount to prevent flickering loops
 
     async function loadGarageData(code: string) {
         try {

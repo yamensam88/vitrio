@@ -195,7 +195,40 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     </div>
                 )}
 
-                {/* STEP 2: PERSONAL INFO */}
+                {/* STEP 2: DATE & TIME SELECTION */}
+                {step === "DATE" && (
+                    <div>
+                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>2. Choix de la date & heure</h3>
+
+                        {loadingData ? (
+                            <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Chargement des créneaux...</div>
+                        ) : (
+                            <div style={{ marginBottom: '1.5rem' }}>
+                                <TimeSlotPicker
+                                    mode="CUSTOMER"
+                                    availabilities={availabilities}
+                                    appointments={appointments}
+                                    onSlotClick={(date) => setSelectedDate(date)}
+                                    selectedDate={selectedDate}
+                                />
+                            </div>
+                        )}
+
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <button className="btn" style={{ flex: 1, background: '#F1F5F9' }} onClick={handleBack}>Retour</button>
+                            <button
+                                className="btn btn-primary"
+                                style={{ flex: 2 }}
+                                disabled={!selectedDate}
+                                onClick={handleNext}
+                            >
+                                Suivant &rarr;
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* STEP 3: PERSONAL INFO */}
                 {step === "INFO" && (
                     <div>
                         <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>2. Vos Coordonnées</h3>
