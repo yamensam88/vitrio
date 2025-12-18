@@ -96,7 +96,8 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     offers: [selectedOffer.description],
                     email: formData.email,
                     phone: formData.phone,
-                    status: "En attente"
+                    status: "En attente",
+                    billing_triggered: false
                 });
 
                 // Also add to local context as a fallback/instant update
