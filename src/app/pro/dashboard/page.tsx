@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability } from "@/lib/supabase-service";
+import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability } from "@/lib/supabase-service";
 import type { Database } from "@/lib/supabase";
-import { format } from "date-fns";
+import { format, setHours, setMinutes } from "date-fns";
 import { fr } from "date-fns/locale";
+import Calendar from "@/components/Calendar";
 
 type Garage = Database['public']['Tables']['garages']['Row'];
 type Appointment = Database['public']['Tables']['appointments']['Row'];
@@ -14,7 +15,7 @@ export default function PartnerDashboard() {
     const router = useRouter();
     const [userGarage, setUserGarage] = useState<Garage | null>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [availabilityInput, setAvailabilityInput] = useState("");
+    const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -38,16 +39,56 @@ export default function PartnerDashboard() {
             }
 
             setUserGarage(garage);
-            setAvailabilityInput(garage.next_availability.split('T')[0]);
 
-            // Load appointments
-            const appts = await getAppointmentsByGarage(garage.id);
+            // Load appointments and availabilities in parallel
+            const [appts, avs] = await Promise.all([
+                getAppointmentsByGarage(garage.id),
+                getGarageAvailabilities(garage.id)
+            ]);
             setAppointments(appts);
+            setAvailabilities(avs);
         } catch (error) {
             console.error('Error loading garage data:', error);
             router.push('/pro/login');
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function handleAddAvailability(date: Date) {
+        if (!userGarage) return;
+
+        const timeStr = prompt("Heure du créneau (ex: 09:00) :", "09:00");
+        if (!timeStr) return;
+
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        const startTime = setHours(setMinutes(date, minutes || 0), hours || 0);
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // 1h default
+
+        try {
+            await addGarageAvailability({
+                garage_id: userGarage.id,
+                start_time: startTime.toISOString(),
+                end_time: endTime.toISOString(),
+                is_available: true
+            });
+
+            // Refresh
+            const avs = await getGarageAvailabilities(userGarage.id);
+            setAvailabilities(avs);
+        } catch (error) {
+            console.error('Error adding availability:', error);
+            alert("Erreur lors de l'ajout");
+        }
+    }
+
+    async function handleDeleteAvailability(id: string) {
+        if (!confirm("Supprimer ce créneau ?")) return;
+        try {
+            await deleteGarageAvailability(id);
+            setAvailabilities(prev => prev.filter(av => av.id !== id));
+        } catch (error) {
+            console.error('Error deleting availability:', error);
         }
     }
 
@@ -112,23 +153,16 @@ export default function PartnerDashboard() {
             </header>
 
             <main className="container" style={{ padding: '2rem 1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-                    <h1 style={{ margin: 0 }}>Tableau de Bord</h1>
+                <div style={{ marginBottom: '2rem' }}>
+                    <h1 style={{ marginBottom: '1.5rem' }}>Tableau de Bord</h1>
 
-                    {/* Availability Management */}
-                    <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', marginTop: 0 }}>
-                        <div style={{ fontSize: '0.9rem' }}>Prochaine dispo :</div>
-                        <input
-                            type="date"
-                            className="input"
-                            style={{ padding: '0.5rem' }}
-                            value={availabilityInput}
-                            onChange={(e) => setAvailabilityInput(e.target.value)}
-                        />
-                        <button className="btn btn-primary" onClick={handleUpdateAvailability} style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>
-                            Mettre à jour
-                        </button>
-                    </div>
+                    {/* New Calendar System */}
+                    <Calendar
+                        appointments={appointments}
+                        availabilities={availabilities}
+                        onAddAvailability={handleAddAvailability}
+                        onDeleteAvailability={handleDeleteAvailability}
+                    />
                 </div>
 
                 {/* Stats */}

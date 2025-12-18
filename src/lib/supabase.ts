@@ -87,6 +87,18 @@ export type Database = {
                 Insert: Omit<Database['public']['Tables']['admin_users']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['admin_users']['Insert']>
             }
+            garage_availabilities: {
+                Row: {
+                    id: string
+                    garage_id: string
+                    start_time: string
+                    end_time: string
+                    is_available: boolean
+                    created_at: string
+                }
+                Insert: Omit<Database['public']['Tables']['garage_availabilities']['Row'], 'id' | 'created_at'>
+                Update: Partial<Database['public']['Tables']['garage_availabilities']['Insert']>
+            }
         }
     }
 }

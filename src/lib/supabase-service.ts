@@ -5,12 +5,18 @@ type Garage = Database['public']['Tables']['garages']['Row']
 type AdminGarage = Database['public']['Tables']['admin_garages']['Row']
 type Appointment = Database['public']['Tables']['appointments']['Row']
 type Offer = Database['public']['Tables']['offers']['Row']
+type GarageAvailability = Database['public']['Tables']['garage_availabilities']['Row']
 
 // Garages
 export async function getGarages() {
+    // We only fetch garages where the associated admin_garage status is 'Actif'
     const { data, error } = await supabase
         .from('garages')
-        .select('*')
+        .select(`
+            *,
+            admin_garages!inner(status)
+        `)
+        .eq('admin_garages.status', 'Actif')
         .order('created_at', { ascending: false })
 
     if (error) throw error
