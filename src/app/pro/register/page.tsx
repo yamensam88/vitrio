@@ -44,20 +44,28 @@ export default function RegisterPro() {
             await createAdminGarage({
                 name: formData.name,
                 city: formData.city,
+                address: formData.address,
                 email: formData.email,
+                phone: formData.phone,
+                siret: formData.siret,
                 status: 'En attente',
                 registration_date: new Date().toISOString().split('T')[0],
                 garage_id: null,
                 generated_code: null,
+                offer_value: formData.customValue,
+                offer_description: formData.offerType === 'finance'
+                    ? `Franchise offerte (jusqu'à ${formData.customValue}€)`
+                    : `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`,
                 home_service: formData.homeService,
-                courtesy_vehicle: formData.courtesyVehicle
+                courtesy_vehicle: formData.courtesyVehicle,
+                franchise_offerte: formData.offerType === 'finance'
             });
 
             alert('Inscription envoyée ! Vous recevrez un email avec votre code d\'accès une fois validé par l\'admin.');
             router.push('/pro');
-        } catch (error) {
-            console.error('Error creating garage:', error);
-            alert('Erreur lors de l\'inscription. Veuillez réessayer.');
+        } catch (error: any) {
+            console.error('Full registration error object:', error);
+            alert(`Erreur lors de l'inscription: ${error?.message || 'Veuillez réessayer.'}`);
         } finally {
             setLoading(false);
         }
@@ -107,6 +115,17 @@ export default function RegisterPro() {
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ gridColumn: 'span 2' }}>
+                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Adresse complète</label>
+                                <input
+                                    required
+                                    type="text"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                    value={formData.address}
+                                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                    placeholder="ex: 123 rue de Rivoli, 75001 Paris"
+                                />
+                            </div>
                             <div>
                                 <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Ville</label>
                                 <input

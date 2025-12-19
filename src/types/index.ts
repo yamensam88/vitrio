@@ -26,4 +26,5 @@ export interface Garage {
     accessCode?: string; // Code de connexion partenaire
     homeService?: boolean; // Intervention à domicile/travail
     courtesyVehicle?: boolean; // Véhicule de courtoisie
+    franchiseOfferte?: boolean; // Franchise offerte
 }

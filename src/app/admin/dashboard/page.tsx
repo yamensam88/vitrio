@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments } from "@/lib/supabase-service";
+import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments, COMMISSION_RATE } from "@/lib/supabase-service";
 import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase-admin";
 import { useRouter } from "next/navigation";
 import type { Database } from "@/lib/supabase";
@@ -68,9 +68,9 @@ export default function AdminDashboard() {
       alert(`Code généré avec succès !\n\nCode d'accès : ${code}\n\nUn email a été envoyé au garage (voir console).`);
       await updateAdminGarageStatus(garageId, 'Actif');
       await loadData(); // Refresh
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating code:', error);
-      alert('Erreur lors de la génération du code');
+      alert(`Erreur lors de la génération du code: ${error?.message || 'Inconnue'}`);
     }
   }
 
@@ -85,6 +85,8 @@ export default function AdminDashboard() {
 
   const pendingCount = adminGarages.filter(g => g.status === "En attente").length;
   const activeCount = adminGarages.filter(g => g.status === "Actif").length;
+  const totalConfirmed = appointments.filter(a => a.status === 'Confirmé').length;
+  const totalCommissions = totalConfirmed * COMMISSION_RATE;
 
   if (loading) {
     return (
@@ -138,6 +140,10 @@ export default function AdminDashboard() {
             <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Partenaires Actifs</div>
             <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10B981' }}>{activeCount}</div>
           </div>
+          <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid #8B5CF6' }}>
+            <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Total Commissions</div>
+            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#8B5CF6' }}>{totalCommissions}€</div>
+          </div>
         </div>
 
         {/* Garage List */}
@@ -151,7 +157,11 @@ export default function AdminDashboard() {
                 <tr>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Garage</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Ville</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Offre</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Services</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Rdv Attente</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Rdv Confirmés</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Commissions</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Date</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Statut</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'right' }}>Actions</th>
@@ -174,6 +184,14 @@ export default function AdminDashboard() {
                         )}
                       </td>
                       <td style={{ padding: '1rem 1.5rem', color: '#64748B' }}>{garage.city}</td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 500, color: '#1E293B' }}>
+                          {garage.offer_description || '-'}
+                        </div>
+                        {garage.offer_value !== null && garage.offer_value > 0 && (
+                          <div style={{ fontSize: '0.75rem', color: '#64748B' }}>Val: {garage.offer_value}€</div>
+                        )}
+                      </td>
 
                       {/* Services Column */}
                       <td style={{ padding: '1rem 1.5rem' }}>
@@ -194,6 +212,32 @@ export default function AdminDashboard() {
                         </div>
                       </td>
 
+                      <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: garageApps.filter(a => a.status === 'En attente').length > 0 ? '#FEF9C3' : '#F1F5F9',
+                          color: garageApps.filter(a => a.status === 'En attente').length > 0 ? '#854D0E' : '#64748B',
+                          fontWeight: 700
+                        }}>
+                          {garageApps.filter(a => a.status === 'En attente').length}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                        <span style={{
+                          padding: '0.25rem 0.5rem',
+                          borderRadius: '4px',
+                          backgroundColor: confirmedApps > 0 ? '#DCFCE7' : '#F1F5F9',
+                          color: confirmedApps > 0 ? '#166534' : '#64748B',
+                          fontWeight: 700
+                        }}>
+                          {confirmedApps}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', textAlign: 'center', fontWeight: 700, color: '#8B5CF6' }}>
+                        {confirmedApps * COMMISSION_RATE}€
+                      </td>
                       <td style={{ padding: '1rem 1.5rem', color: '#64748B' }}>{garage.registration_date}</td>
 
                       <td style={{ padding: '1rem 1.5rem' }}>

@@ -7,12 +7,14 @@ import type { Database } from "@/lib/supabase";
 type RawGarage = Database['public']['Tables']['garages']['Row'];
 
 export type SortOption = "distance" | "price" | "availability";
+export type ServiceFilter = "homeService" | "courtesyVehicle";
 
 export const useGarageSearch = () => {
     const [garages, setGarages] = useState<RawGarage[]>([]);
     const [loading, setLoading] = useState(true);
     const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
     const [sortBy, setSortBy] = useState<SortOption[]>(["distance"]);
+    const [serviceFilters, setServiceFilters] = useState<ServiceFilter[]>([]);
     const [loadingLocation, setLoadingLocation] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -56,7 +58,7 @@ export const useGarageSearch = () => {
 
     // Main logic to process garages
     const processedGarages = useMemo(() => {
-        const results = garages.map((garage) => {
+        let results = garages.map((garage) => {
             // Calculate distance if location is available
             let distance = undefined;
             if (userLocation) {
@@ -77,6 +79,8 @@ export const useGarageSearch = () => {
                 nextAvailability: garage.next_availability,
                 image: garage.image || 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
                 distance,
+                homeService: garage.home_service,
+                courtesyVehicle: garage.courtesy_vehicle,
                 offers: [{
                     id: `default_${garage.id}`,
                     price: 120,
@@ -88,20 +92,31 @@ export const useGarageSearch = () => {
             } as Garage;
         });
 
+        // Apply service filters
+        if (serviceFilters.length > 0) {
+            results = results.filter(garage => {
+                return serviceFilters.every(filter => {
+                    if (filter === "homeService") return garage.homeService;
+                    if (filter === "courtesyVehicle") return garage.courtesyVehicle;
+                    return true;
+                });
+            });
+        }
+
         if (sortBy.length === 0) return results; // No sort
 
         // Global Min/Max for normalization
         const distances = results.map(g => g.distance || Infinity).filter(d => d !== Infinity);
-        const minDist = Math.min(...distances);
-        const maxDist = Math.max(...distances);
+        const minDist = distances.length > 0 ? Math.min(...distances) : 0;
+        const maxDist = distances.length > 0 ? Math.max(...distances) : 100;
 
         const prices = results.map(g => g.offers.length > 0 ? Math.min(...g.offers.map(o => o.price)) : 100);
-        const minPrice = Math.min(...prices);
-        const maxPrice = Math.max(...prices);
+        const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+        const maxPrice = prices.length > 0 ? Math.max(...prices) : 200;
 
         const times = results.map(g => new Date(g.nextAvailability).getTime());
-        const minTime = Math.min(...times);
-        const maxTime = Math.max(...times);
+        const minTime = times.length > 0 ? Math.min(...times) : Date.now();
+        const maxTime = times.length > 0 ? Math.max(...times) : Date.now() + 86400000;
 
         // Score Calculation (Lower is better for all metrics, so we invert)
         results.sort((a, b) => {
@@ -133,7 +148,7 @@ export const useGarageSearch = () => {
         });
 
         return results;
-    }, [garages, userLocation, sortBy]);
+    }, [garages, userLocation, sortBy, serviceFilters]);
 
     return {
         garages: processedGarages,
@@ -142,6 +157,8 @@ export const useGarageSearch = () => {
         locateUser,
         sortBy,
         setSortBy,
+        serviceFilters,
+        setServiceFilters,
         error,
     };
 };

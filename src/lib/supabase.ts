@@ -23,6 +23,7 @@ export type Database = {
                     access_code: string | null
                     home_service: boolean
                     courtesy_vehicle: boolean
+                    franchise_offerte: boolean
                     created_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['garages']['Row'], 'created_at'>
@@ -33,13 +34,19 @@ export type Database = {
                     id: number
                     name: string
                     city: string
+                    address: string | null
                     email: string | null
+                    phone: string | null
+                    siret: string | null
                     status: string
                     registration_date: string
                     garage_id: string | null
                     generated_code: string | null
+                    offer_value: number | null
+                    offer_description: string | null
                     home_service: boolean
                     courtesy_vehicle: boolean
+                    franchise_offerte: boolean
                     created_at: string
                 }
                 Insert: Omit<Database['public']['Tables']['admin_garages']['Row'], 'id' | 'created_at'>

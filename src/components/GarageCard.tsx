@@ -79,7 +79,7 @@ export const GarageCard = ({ garage, onSelect }: GarageCardProps) => {
             {/* Footer / Price */}
             <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Offre dès</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Offerts</div>
                     <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-main)' }}>
                         {minPrice}€
                     </div>

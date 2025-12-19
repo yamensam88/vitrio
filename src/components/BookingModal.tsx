@@ -253,7 +253,12 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                             </button>
                             <button
                                 className="btn btn-primary"
-                                style={{ flex: 2 }}
+                                style={{
+                                    flex: 2,
+                                    opacity: (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address) ? 0.5 : 1,
+                                    cursor: (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address) ? 'not-allowed' : 'pointer'
+                                }}
+                                disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address}
                                 onClick={handleNext}
                             >
                                 Continuer

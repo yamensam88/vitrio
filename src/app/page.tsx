@@ -16,6 +16,8 @@ export default function Home() {
     locateUser,
     sortBy,
     setSortBy,
+    serviceFilters,
+    setServiceFilters,
     error
   } = useGarageSearch();
 
@@ -97,6 +99,8 @@ export default function Home() {
           <FilterBar
             currentSort={sortBy}
             onSortChange={setSortBy}
+            serviceFilters={serviceFilters}
+            onServiceFilterChange={setServiceFilters}
             disabled={loadingLocation}
           />
         </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability } from "@/lib/supabase-service";
+import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability, COMMISSION_RATE } from "@/lib/supabase-service";
 import type { Database } from "@/lib/supabase";
 import { format, setHours, setMinutes } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -133,6 +133,7 @@ export default function PartnerDashboard() {
         .reduce((acc, curr) => acc + curr.amount, 0);
 
     const confirmedCount = appointments.filter(a => a.status === 'Confirmé' || a.status === 'Terminé').length;
+    const commissions = confirmedCount * COMMISSION_RATE;
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: '#F8FAFC' }}>
@@ -173,6 +174,10 @@ export default function PartnerDashboard() {
                     <div className="card" style={{ padding: '1.5rem' }}>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>RDV Confirmés</div>
                         <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-primary)' }}>{confirmedCount}</div>
+                    </div>
+                    <div className="card" style={{ padding: '1.5rem' }}>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Frais Vitrio (55€/rdv)</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 700, color: '#EF4444' }}>{commissions} €</div>
                     </div>
                     <div className="card" style={{ padding: '1.5rem' }}>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Note Moyenne</div>

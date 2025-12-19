@@ -7,6 +7,8 @@ type Appointment = Database['public']['Tables']['appointments']['Row']
 type Offer = Database['public']['Tables']['offers']['Row']
 type GarageAvailability = Database['public']['Tables']['garage_availabilities']['Row']
 
+export const COMMISSION_RATE = 55
+
 // Garages
 export async function getGarages() {
     // We only fetch garages where the associated admin_garage status is 'Actif'
@@ -149,34 +151,39 @@ export async function generateAccessCodeForGarage(adminGarageId: number) {
     } else {
         // Create new garage
         const newGarageId = `g_${adminGarageId}_${Date.now()}`
+        const garageData = {
+            id: newGarageId,
+            name: adminGarage.name,
+            address: adminGarage.address || `${adminGarage.city} Centre`,
+            city: adminGarage.city,
+            lat: 48.8566 + (Math.random() * 0.1),
+            lng: 2.3522 + (Math.random() * 0.1),
+            rating: 5.0,
+            next_availability: new Date().toISOString(),
+            image: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
+            access_code: code,
+            home_service: adminGarage.home_service || false,
+            courtesy_vehicle: adminGarage.courtesy_vehicle || false,
+            franchise_offerte: adminGarage.franchise_offerte || true
+        };
+
+        console.log("DEBUG: Inserting new garage with data:", garageData);
+
         const { error: garageCreateError } = await supabase
             .from('garages')
-            .insert({
-                id: newGarageId,
-                name: adminGarage.name,
-                address: `${adminGarage.city} Centre`,
-                city: adminGarage.city,
-                lat: 48.8566 + (Math.random() * 0.1),
-                lng: 2.3522 + (Math.random() * 0.1),
-                rating: 5.0,
-                next_availability: new Date().toISOString(),
-                image: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
-                access_code: code,
-                home_service: adminGarage.home_service || false,
-                courtesy_vehicle: adminGarage.courtesy_vehicle || false
-            })
+            .insert(garageData)
 
         if (garageCreateError) throw garageCreateError
 
-        // Create default offer for the garage
+        // Create default offer for the garage based on registration details
         const { error: offerCreateError } = await supabase
             .from('offers')
             .insert({
                 id: `offer_${newGarageId}`,
                 garage_id: newGarageId,
-                price: 120,
+                price: 120, // Standard service price
                 currency: 'EUR',
-                description: 'Remplacement Standard',
+                description: adminGarage.offer_description || 'Remplacement Standard',
                 availability: new Date().toISOString(),
                 service_duration: 120
             })
