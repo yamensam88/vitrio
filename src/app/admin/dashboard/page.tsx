@@ -12,10 +12,12 @@ type Appointment = Database['public']['Tables']['appointments']['Row'];
 export default function AdminDashboard() {
   const [adminGarages, setAdminGarages] = useState<AdminGarage[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [selectedGarageId, setSelectedGarageId] = useState<string>('');
   const [dateRange, setDateRange] = useState<{ start: string, end: string }>({ start: '', end: '' });
   const [loading, setLoading] = useState(true);
 
   const filteredAppointments = appointments.filter(app => {
+    if (selectedGarageId && app.garage_id !== selectedGarageId) return false;
     if (dateRange.start && app.date < dateRange.start) return false;
     if (dateRange.end && app.date > dateRange.end) return false;
     return true;
@@ -310,23 +312,37 @@ export default function AdminDashboard() {
           <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 style={{ fontSize: '1.25rem' }}>Liste des Rendez-vous</h2>
 
-            {/* Date Filters */}
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem', color: '#64748B' }}>Période :</span>
-              <input
-                type="date"
-                className="input-field"
-                value={dateRange.start}
-                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
-                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-              />
-              <span style={{ color: '#64748B' }}>à</span>
-              <input
-                type="date"
-                value={dateRange.end}
-                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
-                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-              />
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+              {/* Garage Filter */}
+              <select
+                value={selectedGarageId}
+                onChange={(e) => setSelectedGarageId(e.target.value)}
+                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', maxWidth: '200px' }}
+              >
+                <option value="">Tous les garages</option>
+                {adminGarages.map(g => (
+                  <option key={g.id} value={g.garage_id || ''}>{g.name}</option>
+                ))}
+              </select>
+
+              {/* Date Filters */}
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.9rem', color: '#64748B' }}>Période :</span>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                />
+                <span style={{ color: '#64748B' }}>à</span>
+                <input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                  style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+                />
+              </div>
             </div>
           </div>
 
@@ -339,7 +355,6 @@ export default function AdminDashboard() {
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Client</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Véhicule / Type</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Coordonnées</th>
-                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Montant / Offre</th>
                   <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Statut</th>
                 </tr>
               </thead>
@@ -371,14 +386,6 @@ export default function AdminDashboard() {
                         <div style={{ color: '#64748B', fontSize: '0.8rem' }}>✉️ {appt.email}</div>
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <div style={{ fontWeight: 600 }}>{appt.amount}€</div>
-                        {appt.offers && appt.offers[0] && (
-                          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: '4px' }}>
-                            {appt.offers[0]}
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ padding: '1rem 1.5rem' }}>
                         <span style={{
                           padding: '0.25rem 0.75rem',
                           borderRadius: '999px',
@@ -395,7 +402,7 @@ export default function AdminDashboard() {
                 })}
                 {filteredAppointments.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+                    <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
                       Aucun rendez-vous trouvé.
                     </td>
                   </tr>
