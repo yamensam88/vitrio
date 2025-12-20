@@ -167,10 +167,7 @@ export default function PartnerDashboard() {
 
                 {/* Stats */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-                    <div className="card" style={{ padding: '1.5rem' }}>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Total Facturé</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-text-main)' }}>{revenue} €</div>
-                    </div>
+
                     <div className="card" style={{ padding: '1.5rem' }}>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>RDV Confirmés</div>
                         <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--color-primary)' }}>{confirmedCount}</div>
@@ -288,7 +285,7 @@ export default function PartnerDashboard() {
                                     )}
                                     {app.status === 'Terminé' && (
                                         <div style={{ fontWeight: 700, color: 'var(--color-text-main)', fontSize: '1.2rem' }}>
-                                            +{app.amount} €
+                                            Terminé
                                         </div>
                                     )}
                                 </div>
