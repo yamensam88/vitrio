@@ -12,7 +12,14 @@ type Appointment = Database['public']['Tables']['appointments']['Row'];
 export default function AdminDashboard() {
   const [adminGarages, setAdminGarages] = useState<AdminGarage[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [dateRange, setDateRange] = useState<{ start: string, end: string }>({ start: '', end: '' });
   const [loading, setLoading] = useState(true);
+
+  const filteredAppointments = appointments.filter(app => {
+    if (dateRange.start && app.date < dateRange.start) return false;
+    if (dateRange.end && app.date > dateRange.end) return false;
+    return true;
+  });
   const [adminEmail, setAdminEmail] = useState<string>('');
   const router = useRouter();
 
@@ -297,7 +304,108 @@ export default function AdminDashboard() {
             </table>
           </div>
         </div>
+
+        {/* Appointments Section */}
+        <div className="card" style={{ marginTop: '2rem', padding: '0', overflow: 'hidden' }}>
+          <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 style={{ fontSize: '1.25rem' }}>Liste des Rendez-vous</h2>
+
+            {/* Date Filters */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.9rem', color: '#64748B' }}>Période :</span>
+              <input
+                type="date"
+                className="input-field"
+                value={dateRange.start}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              />
+              <span style={{ color: '#64748B' }}>à</span>
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
+                style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}
+              />
+            </div>
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead style={{ backgroundColor: '#F8FAFC', color: '#64748B', fontSize: '0.85rem', textAlign: 'left' }}>
+                <tr>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Date</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Garage</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Client</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Véhicule / Type</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Coordonnées</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Montant / Offre</th>
+                  <th style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAppointments.map(appt => {
+                  const garage = adminGarages.find(g => g.garage_id === appt.garage_id);
+                  return (
+                    <tr key={appt.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.9rem', color: '#1E293B' }}>
+                        {new Date(appt.date).toLocaleDateString()}
+                        <div style={{ fontSize: '0.8rem', color: '#64748B' }}>
+                          {new Date(appt.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                        {garage ? garage.name : 'Garage inconnu'}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ fontWeight: 600, color: '#1E293B' }}>{appt.client_name}</div>
+                        {appt.address && <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{appt.address}</div>}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ fontWeight: 500 }}>{appt.plate || appt.vehicle}</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748B' }}>{appt.intervention_type || 'Pare-brise'}</div>
+                        {appt.insurance_name && <div style={{ fontSize: '0.8rem', color: '#3B82F6' }}>{appt.insurance_name}</div>}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem', fontSize: '0.9rem' }}>
+                        <div>📞 {appt.phone}</div>
+                        <div style={{ color: '#64748B', fontSize: '0.8rem' }}>✉️ {appt.email}</div>
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <div style={{ fontWeight: 600 }}>{appt.amount}€</div>
+                        {appt.offers && appt.offers[0] && (
+                          <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', color: '#92400E', borderRadius: '4px' }}>
+                            {appt.offers[0]}
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: '1rem 1.5rem' }}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '999px',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          backgroundColor: appt.status === 'En attente' ? '#FEF9C3' : appt.status === 'Confirmé' ? '#DCFCE7' : '#F1F5F9',
+                          color: appt.status === 'En attente' ? '#854D0E' : appt.status === 'Confirmé' ? '#166534' : '#64748B'
+                        }}>
+                          {appt.status}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {filteredAppointments.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>
+                      Aucun rendez-vous trouvé.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </main>
-    </div>
+    </div >
   );
 }

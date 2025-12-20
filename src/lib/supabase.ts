@@ -66,6 +66,11 @@ export type Database = {
                     offers: string[]
                     billing_triggered: boolean
                     created_at: string
+                    intervention_type?: string
+                    plate?: string
+                    insurance_name?: string
+                    postal_code?: string
+                    address?: string
                 }
                 Insert: Omit<Database['public']['Tables']['appointments']['Row'], 'id' | 'created_at'>
                 Update: Partial<Database['public']['Tables']['appointments']['Insert']>

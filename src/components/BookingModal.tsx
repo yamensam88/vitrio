@@ -11,7 +11,7 @@ interface BookingModalProps {
     onClose: () => void;
 }
 
-type Step = "DATE" | "INFO" | "DOCS" | "CONFIRM";
+type Step = "DATE" | "INFO" | "CONFIRM";
 
 export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     const [step, setStep] = useState<Step>("DATE");
@@ -46,12 +46,14 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
 
     // Form State
     const [formData, setFormData] = useState({
-        lastName: "",
-        firstName: "",
-        address: "",
+        fullName: "",
+        interventionType: "Pare-brise",
+        plate: "",
+        insuranceName: "",
+        postalCode: "",
         email: "",
         phone: "",
-        contractNumber: ""
+        privacyAccepted: false
     });
 
     // Simplified file state (just boolean for "uploaded" simulation)
@@ -65,13 +67,11 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
 
     const handleNext = () => {
         if (step === "DATE" && selectedDate) setStep("INFO");
-        else if (step === "INFO") setStep("DOCS");
-        else if (step === "DOCS") setStep("CONFIRM");
+        // INFO submits directly now
     };
 
     const handleBack = () => {
         if (step === "INFO") setStep("DATE");
-        else if (step === "DOCS") setStep("INFO");
     };
 
     const simulateUpload = (field: keyof typeof files) => {
@@ -84,12 +84,19 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
     const { addAppointment } = useApp();
 
     const handleConfirm = async () => {
+        // FRENCH PHONE VALIDATION
+        const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
+        if (!phoneRegex.test(formData.phone)) {
+            alert("Veuillez entrer un numéro de téléphone valide (format français).");
+            return;
+        }
+
         if (selectedOffer && selectedDate) {
             setIsSubmitting(true);
             try {
                 await createAppointment({
-                    client_name: `${formData.firstName} ${formData.lastName}`,
-                    vehicle: "Véhicule Client",
+                    client_name: formData.fullName,
+                    vehicle: formData.plate, // Using Plate as vehicle identifier
                     date: selectedDate.toISOString(),
                     amount: selectedOffer.price,
                     garage_id: garage.id,
@@ -97,13 +104,19 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     email: formData.email,
                     phone: formData.phone,
                     status: "En attente",
-                    billing_triggered: false
+                    billing_triggered: false,
+                    // New Fields
+                    intervention_type: formData.interventionType,
+                    plate: formData.plate,
+                    insurance_name: formData.insuranceName,
+                    postal_code: formData.postalCode,
+                    address: formData.postalCode // Map postal code to address as rough location if needed
                 });
 
                 // Also add to local context as a fallback/instant update
                 addAppointment({
-                    clientName: `${formData.firstName} ${formData.lastName}`,
-                    vehicle: "Véhicule Client",
+                    clientName: formData.fullName,
+                    vehicle: formData.plate,
                     date: selectedDate.toISOString(),
                     amount: selectedOffer.price,
                     garageId: garage.id,
@@ -126,7 +139,6 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
         <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '1.5rem', alignItems: 'center' }}>
             <div style={{ flex: 1, height: '4px', background: step === 'DATE' ? 'var(--color-primary)' : '#10b981', borderRadius: '4px' }}></div>
             <div style={{ flex: 1, height: '4px', background: step === 'INFO' ? 'var(--color-primary)' : (step === 'DATE' ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
-            <div style={{ flex: 1, height: '4px', background: step === 'DOCS' ? 'var(--color-primary)' : (['DATE', 'INFO'].includes(step) ? '#E2E8F0' : '#10b981'), borderRadius: '4px' }}></div>
         </div>
     );
 
@@ -211,39 +223,122 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                 {/* STEP 2: PERSONAL INFO */}
                 {step === "INFO" && (
                     <div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', fontWeight: 600 }}>2. Vos Coordonnées</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                            <input
-                                type="text" placeholder="Prénom"
-                                value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-                                className="input-field"
-                                style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', width: '100%' }}
-                            />
-                            <input
-                                type="text" placeholder="Nom"
-                                value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', width: '100%' }}
-                            />
+                        <h3 style={{ fontSize: '1.25rem', marginBottom: '1.5rem', fontWeight: 700, color: 'var(--color-text-main)' }}>Saisissez les informations</h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Type d'intervention : *</label>
+                                <select
+                                    value={formData.interventionType}
+                                    onChange={e => setFormData({ ...formData, interventionType: e.target.value })}
+                                    className="input-field"
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', backgroundColor: 'white' }}
+                                >
+                                    <option value="Pare-brise">Pare-brise</option>
+                                    <option value="Vitre latérale">Vitre latérale</option>
+                                    <option value="Lunette arrière">Lunette arrière</option>
+                                    <option value="Optique">Optique de phare</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Immatriculation du véhicule *</label>
+                                <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E2E8F0', borderRadius: '6px', overflow: 'hidden' }}>
+                                    <div style={{ width: '14px', height: '46px', background: '#003399' }}></div>
+                                    <input
+                                        type="text"
+                                        placeholder="AB-123-CB"
+                                        value={formData.plate}
+                                        onChange={e => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
+                                        style={{ width: '100%', padding: '0.75rem', border: 'none', outline: 'none' }}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <input
-                            type="text" placeholder="Adresse complète"
-                            value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
-                            style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', width: '100%', marginBottom: '1rem' }}
-                        />
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Quelle est votre assurance ? *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Compatible Toutes Assurances"
+                                    value={formData.insuranceName}
+                                    onChange={e => setFormData({ ...formData, insuranceName: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Nom / Prénom *</label>
+                                <input
+                                    type="text"
+                                    placeholder="Le RDV est réservé au nom de ..."
+                                    value={formData.fullName}
+                                    onChange={e => setFormData({ ...formData, fullName: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                />
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Email *</label>
+                                <input
+                                    type="email"
+                                    placeholder="la réservation du rendez-vous est envoyé à.."
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                />
+                            </div>
+
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Téléphone *</label>
+                                <div style={{ position: 'relative' }}>
+                                    <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <span style={{ fontSize: '1.2rem' }}>🇫🇷</span>
+                                        <span style={{ fontSize: '0.8rem', color: '#666' }}>▼</span>
+                                    </div>
+                                    <input
+                                        type="tel"
+                                        placeholder="06 12 34 56 78"
+                                        value={formData.phone}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (/^[\d\s]*$/.test(val)) setFormData({ ...formData, phone: val });
+                                        }}
+                                        style={{ width: '100%', padding: '0.75rem', paddingLeft: '4rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 500, color: '#4b5563' }}>Code Postal d'intervention *</label>
                             <input
-                                type="email" placeholder="Email"
-                                value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', width: '100%' }}
-                            />
-                            <input
-                                type="tel" placeholder="Téléphone"
-                                value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0', width: '100%' }}
+                                type="text"
+                                placeholder="On se déplace gratuitement"
+                                value={formData.postalCode}
+                                onChange={e => setFormData({ ...formData, postalCode: e.target.value })}
+                                style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #E2E8F0' }}
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+                        <div style={{ marginBottom: '2rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    checked={formData.privacyAccepted}
+                                    onChange={e => setFormData({ ...formData, privacyAccepted: e.target.checked })}
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                                <span style={{ fontSize: '0.9rem', color: '#4b5563' }}>
+                                    J'accepte la politique de confidentialité de ce site.
+                                </span>
+                            </label>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                             <button
                                 className="btn"
                                 style={{ flex: 1, background: '#F1F5F9', color: '#64748B' }}
@@ -255,70 +350,19 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                                 className="btn btn-primary"
                                 style={{
                                     flex: 2,
-                                    opacity: (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address) ? 0.5 : 1,
-                                    cursor: (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address) ? 'not-allowed' : 'pointer'
+                                    opacity: (!formData.fullName || !formData.email || !formData.phone || !formData.plate || !formData.insuranceName || !formData.postalCode || !formData.privacyAccepted) ? 0.5 : 1,
+                                    cursor: (!formData.fullName || !formData.email || !formData.phone || !formData.plate || !formData.insuranceName || !formData.postalCode || !formData.privacyAccepted) ? 'not-allowed' : 'pointer'
                                 }}
-                                disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.address}
-                                onClick={handleNext}
-                            >
-                                Continuer
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* STEP 3: DOCUMENTS */}
-                {step === "DOCS" && (
-                    <div>
-                        <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', fontWeight: 600 }}>3. Dossier Assurance</h3>
-                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
-                            Ces documents sont nécessaires pour la prise en charge directe (Tiers-payant).
-                        </p>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                            {[
-                                { key: 'carteGrise', label: 'Carte Grise (Recto/Verso)' },
-                                { key: 'assurance', label: 'Attestation d\'assurance / Carte Verte' },
-                                { key: 'sinistre', label: 'Déclaration de sinistre (si disponible)' },
-                                { key: 'identity', label: 'Pièce d\'identité (CNI/Passeport)' },
-                                { key: 'photos', label: 'Photo du pare-brise endommagé' },
-                            ].map((field) => (
-                                <div key={field.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px dashed #CBD5E1', borderRadius: '6px' }}>
-                                    <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{field.label}</span>
-                                    {/* @ts-ignore */}
-                                    {files[field.key] ? (
-                                        <span style={{ color: '#10b981', fontWeight: 600, fontSize: '0.9rem' }}>✅ Reçu</span>
-                                    ) : (
-                                        <button
-                                            onClick={() => simulateUpload(field.key as keyof typeof files)}
-                                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', background: '#EFF6FF', color: 'var(--color-primary)', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            Joindre fichier
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-                            <button
-                                className="btn"
-                                style={{ flex: 1, background: '#F1F5F9', color: '#64748B' }}
-                                onClick={handleBack}
-                            >
-                                Retour
-                            </button>
-                            <button
-                                className="btn btn-primary"
-                                style={{ flex: 2 }}
-                                disabled={isSubmitting}
+                                disabled={!formData.fullName || !formData.email || !formData.phone || !formData.plate || !formData.insuranceName || !formData.postalCode || !formData.privacyAccepted || isSubmitting}
                                 onClick={handleConfirm}
                             >
-                                {isSubmitting ? "Validation en cours..." : "Valider le rendez-vous"}
+                                {isSubmitting ? "Validation..." : "Valider le RDV"}
                             </button>
                         </div>
                     </div>
                 )}
+
+
 
                 {/* STEP 4: SUCCESS */}
                 {step === "CONFIRM" && (

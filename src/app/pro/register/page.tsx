@@ -280,6 +280,76 @@ export default function RegisterPro() {
                             </div>
                         </div>
 
+                        <div style={{ marginTop: '2rem', padding: '1rem', backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+                            <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: '#1E293B' }}>Conditions Générales de Vente (CGV)</h3>
+                            <div style={{
+                                height: '200px',
+                                overflowY: 'auto',
+                                padding: '1rem',
+                                backgroundColor: '#F8FAFC',
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '6px',
+                                fontSize: '0.85rem',
+                                color: '#475569',
+                                lineHeight: '1.5',
+                                marginBottom: '1rem'
+                            }}>
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>CONDITIONS GÉNÉRALES DE VENTE</strong>
+                                <strong style={{ display: 'block', marginBottom: '1rem' }}>Plateforme Vitrio – Professionnels du vitrage automobile</strong>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 1 – OBJET</strong>
+                                <p style={{ marginBottom: '1rem' }}>Les présentes Conditions Générales de Vente (ci-après « CGV ») ont pour objet de définir les modalités selon lesquelles la société Vitrio met à disposition des professionnels du vitrage automobile (ci-après le « Garage ») une plateforme de mise en relation avec des clients particuliers souhaitant effectuer une prestation de réparation ou de remplacement de vitrage automobile.<br /><br />Vitrio agit exclusivement en qualité d’intermédiaire technique de mise en relation et ne réalise aucune prestation de réparation.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 2 – ACCEPTATION DES CGV</strong>
+                                <p style={{ marginBottom: '1rem' }}>L’inscription du Garage sur la plateforme Vitrio implique l’acceptation pleine, entière et sans réserve des présentes CGV.<br />Toute utilisation de la plateforme vaut acceptation des CGV en vigueur à la date d’utilisation.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 3 – DÉFINITIONS</strong>
+                                <p style={{ marginBottom: '0.5rem' }}><strong>3.1 Rendez-vous</strong><br />On entend par Rendez-vous toute demande de créneau formulée par un client final via la plateforme Vitrio auprès d’un Garage.</p>
+                                <p style={{ marginBottom: '1rem' }}><strong>3.2 Rendez-vous Confirmé</strong><br />Un Rendez-vous Confirmé est réputé constitué lorsque l’ensemble des conditions cumulatives suivantes est rempli :<br />- Le client final a effectué une demande de rendez-vous via la plateforme Vitrio<br />- Le Garage a accepté le créneau proposé via la plateforme<br />- Le client final a confirmé explicitement le rendez-vous par l’un des moyens suivants : validation via lien de confirmation, réponse positive par SMS ou email, confirmation téléphonique tracée par Vitrio<br /><br />👉 La confirmation rend le rendez-vous définitif et facturable.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 4 – MODÈLE ÉCONOMIQUE ET FACTURATION</strong>
+                                <p style={{ marginBottom: '0.5rem' }}><strong>4.1 Principe</strong><br />L’accès à la plateforme Vitrio est gratuit pour le Garage.<br />Vitrio perçoit une rémunération uniquement pour chaque Rendez-vous Confirmé, au tarif forfaitaire de :<br /><strong>55 € HT par Rendez-vous Confirmé</strong></p>
+                                <p style={{ marginBottom: '0.5rem' }}><strong>4.2 Déclenchement de la facturation</strong><br />La facturation est déclenchée au moment de la confirmation du rendez-vous, indépendamment de la réalisation effective de la prestation.<br />En conséquence, ne donnent lieu à aucun remboursement : l’absence du client le jour du rendez-vous, l’annulation tardive par le client après confirmation, le refus ultérieur du client, le fait que le client ne donne pas suite à la prestation.</p>
+                                <p style={{ marginBottom: '1rem' }}><strong>4.3 Périodicité de facturation</strong><br />Les Rendez-vous Confirmés sont facturés par période de quinze (15) jours.<br />À l’issue de chaque période, Vitrio émet une facture récapitulative correspondant aux rendez-vous confirmés durant ladite période.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 5 – CAS DE NON-FACTURATION</strong>
+                                <p style={{ marginBottom: '1rem' }}>Un rendez-vous ne pourra être facturé uniquement dans les cas suivants :<br />- annulation par le client avant confirmation<br />- refus du rendez-vous par le Garage<br />- erreur technique imputable exclusivement à Vitrio<br />- demande manifestement hors périmètre des services proposés par le Garage<br /><br />Toute non-facturation relève de la décision souveraine de Vitrio, sur la base des éléments techniques disponibles.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 6 – CONTESTATIONS ET LITIGES</strong>
+                                <p style={{ marginBottom: '0.5rem' }}><strong>6.1 Délai impératif</strong><br />Toute contestation relative à un Rendez-vous Confirmé doit être formulée dans un délai maximum de quarante-huit (48) heures suivant la confirmation.<br />À défaut, le rendez-vous sera réputé définitivement valide et non contestable.</p>
+                                <p style={{ marginBottom: '1rem' }}><strong>6.2 Procédure</strong><br />Toute contestation devra impérativement comporter : l’identifiant du rendez-vous, le motif précis, les éléments justificatifs disponibles.<br />Vitrio se réserve le droit d’accepter ou refuser toute contestation.<br />Aucun remboursement n’est automatique.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 7 – CLAUSE ANTI-CONTOURNEMENT</strong>
+                                <p style={{ marginBottom: '1rem' }}>Le Garage s’interdit formellement de contourner la plateforme Vitrio, notamment en :<br />- contactant directement un client issu de Vitrio afin d’éviter la facturation<br />- annulant un rendez-vous confirmé pour réaliser la prestation hors plateforme<br />- modifiant artificiellement le statut d’un rendez-vous<br /><br />Tout contournement avéré entraînera de plein droit : la facturation immédiate du rendez-vous concerné, une pénalité forfaitaire de 250 € HT par infraction, la suspension ou la résiliation du compte Garage.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 8 – PREUVES ET DONNÉES FAISANT FOI</strong>
+                                <p style={{ marginBottom: '1rem' }}>Les données enregistrées par Vitrio (horodatage, confirmations, historiques, logs techniques, échanges) font foi entre les parties.<br />Le Garage reconnaît la valeur probante des systèmes d’enregistrement de Vitrio.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 9 – MODALITÉS DE PAIEMENT</strong>
+                                <p style={{ marginBottom: '1rem' }}>Les factures sont payables à réception, sans escompte.<br />Tout retard de paiement entraînera de plein droit : la suspension immédiate de l’accès à la plateforme, l’application des pénalités légales en vigueur, l’indemnité forfaitaire pour frais de recouvrement prévue par la loi.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 10 – RESPONSABILITÉ</strong>
+                                <p style={{ marginBottom: '1rem' }}>Vitrio n’est pas partie au contrat conclu entre le client final et le Garage.<br />Vitrio ne saurait être tenue responsable : de la réalisation de la prestation, de la qualité du service rendu, du comportement du client final.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 11 – RÉSILIATION</strong>
+                                <p style={{ marginBottom: '1rem' }}>Vitrio se réserve le droit de suspendre ou résilier le compte d’un Garage en cas de : non-paiement, contournement, comportement frauduleux, atteinte à l’image de la plateforme.</p>
+
+                                <strong style={{ display: 'block', marginBottom: '0.5rem' }}>ARTICLE 12 – DROIT APPLICABLE</strong>
+                                <p>Les présentes CGV sont soumises au droit français.<br />Tout litige relèvera de la compétence exclusive des tribunaux compétents du ressort du siège social de Vitrio.</p>
+                            </div>
+
+                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
+                                <input
+                                    type="checkbox"
+                                    required
+                                    style={{ marginTop: '0.25rem', width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                                <span style={{ fontSize: '0.9rem', color: '#334155' }}>
+                                    J'ai lu et j'accepte les Conditions Générales de Vente (CGV). Je reconnais que chaque rendez-vous confirmé sera facturé <strong>55€ HT</strong> et je m'engage à respecter la charte qualité Vitrio.
+                                </span>
+                            </label>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}
