@@ -177,7 +177,7 @@ export default function PartnerDashboard() {
                     </div>
                     <div className="card" style={{ padding: '1.5rem' }}>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Frais Vitrio (55€/rdv)</div>
-                        <div style={{ fontSize: '2rem', fontWeight: 700, color: '#EF4444' }}>{commissions} €</div>
+                        <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10B981' }}>{commissions} €</div>
                     </div>
                     <div className="card" style={{ padding: '1.5rem' }}>
                         <div style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Note Moyenne</div>
