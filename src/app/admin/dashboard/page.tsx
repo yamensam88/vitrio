@@ -50,6 +50,10 @@ export default function AdminDashboard() {
         getAdminGarages(),
         getAppointments()
       ]);
+      console.log('[DEBUG] Loaded garages:', garagesData.length);
+      console.log('[DEBUG] Loaded appointments:', appointmentsData.length);
+      console.log('[DEBUG] Sample appointment:', appointmentsData[0]);
+      console.log('[DEBUG] Sample garage:', garagesData[0]);
       setAdminGarages(garagesData);
       setAppointments(appointmentsData);
     } catch (error) {
@@ -178,8 +182,17 @@ export default function AdminDashboard() {
               </thead>
               <tbody>
                 {adminGarages.map(garage => {
-                  const garageApps = appointments.filter(a => a.garage_id === garage.garage_id);
+                  // Defensive check: only filter if garage_id exists
+                  const garageApps = garage.garage_id
+                    ? appointments.filter(a => a.garage_id === garage.garage_id)
+                    : [];
                   const confirmedApps = garageApps.filter(a => a.status === 'Confirmé').length;
+                  const pendingApps = garageApps.filter(a => a.status === 'En attente').length;
+
+                  // Debug logging (remove after verification)
+                  if (garage.garage_id) {
+                    console.log(`[DEBUG] Garage: ${garage.name}, garage_id: ${garage.garage_id}, Total appointments: ${garageApps.length}, Confirmed: ${confirmedApps}, Pending: ${pendingApps}`);
+                  }
 
                   return (
                     <tr key={garage.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -225,11 +238,11 @@ export default function AdminDashboard() {
                         <span style={{
                           padding: '0.25rem 0.5rem',
                           borderRadius: '4px',
-                          backgroundColor: garageApps.filter(a => a.status === 'En attente').length > 0 ? '#FEF9C3' : '#F1F5F9',
-                          color: garageApps.filter(a => a.status === 'En attente').length > 0 ? '#854D0E' : '#64748B',
+                          backgroundColor: pendingApps > 0 ? '#FEF9C3' : '#F1F5F9',
+                          color: pendingApps > 0 ? '#854D0E' : '#64748B',
                           fontWeight: 700
                         }}>
-                          {garageApps.filter(a => a.status === 'En attente').length}
+                          {pendingApps}
                         </span>
                       </td>
 
@@ -310,7 +323,25 @@ export default function AdminDashboard() {
         {/* Appointments Section */}
         <div className="card" style={{ marginTop: '2rem', padding: '0', overflow: 'hidden' }}>
           <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-            <h2 style={{ fontSize: '1.25rem' }}>Liste des Rendez-vous</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Liste des Rendez-vous</h2>
+              <button
+                onClick={loadData}
+                disabled={loading}
+                style={{
+                  background: 'none',
+                  border: '1px solid #CBD5E1',
+                  borderRadius: '4px',
+                  padding: '0.25rem 0.5rem',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  color: '#64748B'
+                }}
+                title="Actualiser les données"
+              >
+                ↻ {loading ? '...' : ''}
+              </button>
+            </div>
 
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               {/* Garage Filter */}
@@ -320,9 +351,12 @@ export default function AdminDashboard() {
                 style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', maxWidth: '200px' }}
               >
                 <option value="">Tous les garages</option>
-                {adminGarages.map(g => (
-                  <option key={g.id} value={g.garage_id || ''}>{g.name}</option>
-                ))}
+                {adminGarages
+                  .filter(g => g.garage_id) // Only show garages that are actually linked
+                  .map(g => (
+                    <option key={g.id} value={g.garage_id!}>{g.name}</option>
+                  ))
+                }
               </select>
 
               {/* Date Filters */}
