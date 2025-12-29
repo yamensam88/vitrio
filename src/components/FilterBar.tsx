@@ -22,8 +22,8 @@ export const FilterBar = ({
     ];
 
     const serviceOptions: { value: ServiceFilter; label: string; icon: string }[] = [
-        { value: "homeService", label: "🏠 Domicile", icon: "" },
-        { value: "courtesyVehicle", label: "🚗 Véhicule", icon: "" },
+        { value: "homeService", label: "Domicile", icon: "🏠" },
+        { value: "courtesyVehicle", label: "Véhicule", icon: "🚗" },
     ];
 
     const toggleSort = (value: SortOption) => {
@@ -82,7 +82,7 @@ export const FilterBar = ({
                                 boxShadow: isActive ? '0 4px 6px -1px rgba(0, 119, 255, 0.2)' : 'none'
                             }}
                         >
-                            <span>{opt.icon}</span>
+                            <span style={{ filter: 'grayscale(100%)' }}>{opt.icon}</span>
                             {opt.label}
                         </button>
                     );
@@ -119,6 +119,7 @@ export const FilterBar = ({
                                 transition: 'all 0.2s',
                             }}
                         >
+                            <span style={{ marginRight: '0.5rem', filter: 'grayscale(100%)' }}>{opt.icon}</span>
                             {opt.label}
                         </button>
                     );
