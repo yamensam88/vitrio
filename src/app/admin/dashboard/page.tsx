@@ -98,7 +98,10 @@ export default function AdminDashboard() {
 
   const pendingCount = adminGarages.filter(g => g.status === "En attente").length;
   const activeCount = adminGarages.filter(g => g.status === "Actif").length;
-  const totalConfirmed = appointments.filter(a => a.status === 'Confirmé').length;
+  // Robust status check for KPI
+  const totalConfirmed = appointments.filter(a =>
+    a.status && (a.status.startsWith('Confirm') || a.status.startsWith('Termin'))
+  ).length;
   const totalCommissions = totalConfirmed * COMMISSION_RATE;
 
   if (loading) {
