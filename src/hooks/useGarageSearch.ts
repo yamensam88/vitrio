@@ -81,7 +81,14 @@ export const useGarageSearch = () => {
                 distance,
                 homeService: garage.home_service,
                 courtesyVehicle: garage.courtesy_vehicle,
-                offers: [{
+                offers: (garage as any).offers?.length > 0 ? (garage as any).offers.map((o: any) => ({
+                    id: o.id,
+                    price: o.price,
+                    currency: o.currency,
+                    description: o.description,
+                    availability: o.availability,
+                    serviceDuration: o.service_duration
+                })) : [{
                     id: `default_${garage.id}`,
                     price: 120,
                     currency: 'EUR',

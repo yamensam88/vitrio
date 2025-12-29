@@ -16,7 +16,8 @@ export async function getGarages() {
         .from('garages')
         .select(`
             *,
-            admin_garages!inner(status)
+            admin_garages!inner(status),
+            offers(*)
         `)
         .eq('admin_garages.status', 'Actif')
         .order('created_at', { ascending: false })
@@ -181,7 +182,7 @@ export async function generateAccessCodeForGarage(adminGarageId: number) {
             .insert({
                 id: `offer_${newGarageId}`,
                 garage_id: newGarageId,
-                price: 120, // Standard service price
+                price: adminGarage.offer_value || 120, // Use the value from registration
                 currency: 'EUR',
                 description: adminGarage.offer_description || 'Remplacement Standard',
                 availability: new Date().toISOString(),

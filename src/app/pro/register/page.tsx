@@ -16,9 +16,11 @@ export default function RegisterPro() {
         address: "",
         email: "",
         phone: "",
-        offerType: 'finance' as 'finance' | 'gift',
+        offerType: 'finance' as 'finance' | 'gift' | 'combined',
         customName: "",
         customValue: 0,
+        combinedRefund: 0,
+        combinedGiftValue: 0,
         homeService: false,
         courtesyVehicle: false
     });
@@ -34,10 +36,17 @@ export default function RegisterPro() {
 
             if (formData.offerType === 'finance') {
                 description = `Franchise offerte (jusqu'à ${formData.customValue}€)`;
-                effectivePrice = -formData.customValue;
+                effectivePrice = formData.customValue;
+            } else if (formData.offerType === 'combined') {
+                // Combined: Refund + Gift
+                const refund = formData.combinedRefund || 0;
+                const giftVal = formData.combinedGiftValue || 0;
+                const giftName = formData.customName || 'Cadeau';
+                description = `Franchise (${refund}€) + ${giftName}`;
+                effectivePrice = refund + giftVal;
             } else {
                 description = `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`;
-                effectivePrice = -formData.customValue;
+                effectivePrice = formData.customValue;
             }
 
             // Create admin garage in Supabase
@@ -52,13 +61,11 @@ export default function RegisterPro() {
                 registration_date: new Date().toISOString().split('T')[0],
                 garage_id: null,
                 generated_code: null,
-                offer_value: formData.customValue,
-                offer_description: formData.offerType === 'finance'
-                    ? `Franchise offerte (jusqu'à ${formData.customValue}€)`
-                    : `${formData.customName} Offert(e) (Val. ${formData.customValue}€)`,
+                offer_value: effectivePrice,
+                offer_description: description,
                 home_service: formData.homeService,
                 courtesy_vehicle: formData.courtesyVehicle,
-                franchise_offerte: formData.offerType === 'finance'
+                franchise_offerte: formData.offerType === 'finance' || formData.offerType === 'combined'
             });
 
             alert('Inscription envoyée ! Vous recevrez un email avec votre code d\'accès une fois validé par l\'admin.');
@@ -202,6 +209,23 @@ export default function RegisterPro() {
                                 >
                                     🎁 Cadeau
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, offerType: 'combined' }))}
+                                    style={{
+                                        flex: 1,
+                                        padding: '0.5rem',
+                                        fontSize: '0.9rem',
+                                        borderRadius: '6px',
+                                        border: '1px solid',
+                                        borderColor: formData.offerType === 'combined' ? '#0284C7' : '#E2E8F0',
+                                        backgroundColor: formData.offerType === 'combined' ? '#E0F2FE' : 'white',
+                                        color: formData.offerType === 'combined' ? '#0284C7' : '#64748B',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    ✨ Les deux
+                                </button>
                             </div>
 
                             {formData.offerType === 'finance' ? (
@@ -222,7 +246,7 @@ export default function RegisterPro() {
                                         Sera affiché comme : "Franchise offerte jusqu'à {formData.customValue}€"
                                     </div>
                                 </div>
-                            ) : (
+                            ) : formData.offerType === 'gift' ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                     <div>
                                         <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Nature du Cadeau</label>
@@ -248,6 +272,53 @@ export default function RegisterPro() {
                                             />
                                             <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
                                         </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Montant Remboursé (Franchise)</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <input
+                                                required
+                                                type="number"
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                value={formData.combinedRefund || 0}
+                                                onChange={e => setFormData({ ...formData, combinedRefund: parseInt(e.target.value) || 0 })}
+                                                placeholder="100"
+                                            />
+                                            <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Nature du Cadeau</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                            value={formData.customName}
+                                            onChange={e => setFormData({ ...formData, customName: e.target.value })}
+                                            placeholder="ex: Carte Carburant, Essuie-glaces..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Valeur du Cadeau</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <input
+                                                required
+                                                type="number"
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                value={formData.combinedGiftValue || 0}
+                                                onChange={e => setFormData({ ...formData, combinedGiftValue: parseInt(e.target.value) || 0 })}
+                                                placeholder="50"
+                                            />
+                                            <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ padding: '0.5rem', backgroundColor: '#E0F2FE', borderRadius: '4px', fontSize: '0.85rem', color: '#0369A1' }}>
+                                        <strong>Total Offert : {(formData.combinedRefund || 0) + (formData.combinedGiftValue || 0)}€</strong>
+                                        <br />
+                                        Affiché comme : "Franchise ({formData.combinedRefund || 0}€) + {formData.customName || 'Cadeau'}"
                                     </div>
                                 </div>
                             )}

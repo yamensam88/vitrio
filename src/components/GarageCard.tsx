@@ -63,10 +63,7 @@ export const GarageCard = ({ garage, onSelect }: GarageCardProps) => {
                 marginBottom: '1rem'
             }}>
                 <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Avis Clients</div>
-                    <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        ⭐️ {garage.rating}/5
-                    </div>
+                    {/* Avis Clients removed as requested */}
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '0.25rem' }}>Prochain Créneau</div>
