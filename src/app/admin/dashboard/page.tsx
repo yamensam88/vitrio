@@ -186,12 +186,19 @@ export default function AdminDashboard() {
                   const garageApps = garage.garage_id
                     ? appointments.filter(a => a.garage_id === garage.garage_id)
                     : [];
-                  const confirmedApps = garageApps.filter(a => a.status === 'Confirmé').length;
-                  const pendingApps = garageApps.filter(a => a.status === 'En attente').length;
+                  // Robust status check using startsWith to avoid encoding/accent issues
+                  const confirmedApps = garageApps.filter(a =>
+                    a.status && (a.status.startsWith('Confirm') || a.status.startsWith('Termin'))
+                  ).length;
+                  const pendingApps = garageApps.filter(a =>
+                    a.status && a.status.startsWith('En attente')
+                  ).length;
 
-                  // Debug logging (remove after verification)
-                  if (garage.garage_id) {
-                    console.log(`[DEBUG] Garage: ${garage.name}, garage_id: ${garage.garage_id}, Total appointments: ${garageApps.length}, Confirmed: ${confirmedApps}, Pending: ${pendingApps}`);
+                  // Debug logging to verify exact matches
+                  if (garageApps.length > 0) {
+                    console.log(`[DEBUG] Garage: ${garage.name} (${garage.garage_id})`);
+                    console.log(`- Raw Statuses:`, garageApps.map(a => a.status));
+                    console.log(`- Confirmed Count: ${confirmedApps}`);
                   }
 
                   return (
