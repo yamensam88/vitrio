@@ -100,12 +100,22 @@ export async function getAdminGarages() {
 }
 
 export async function deleteAdminGarage(id: number) {
-    const { error } = await supabase
+    console.log(`[DEBUG] Attempting to delete admin_garage with id: ${id}`);
+    const { error, count } = await supabase
         .from('admin_garages')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', id)
 
-    if (error) throw error
+    if (error) {
+        console.error('[DEBUG] Error deleting admin_garage:', error);
+        throw error;
+    }
+
+    console.log(`[DEBUG] Deleted ${count} rows.`);
+
+    if (count === 0) {
+        console.warn('[DEBUG] WARNING: Delete operation successful but 0 rows were affected. Check RLS or ID.');
+    }
 }
 
 export async function createAdminGarage(garage: Database['public']['Tables']['admin_garages']['Insert']) {
