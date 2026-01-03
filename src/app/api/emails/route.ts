@@ -62,6 +62,49 @@ export async function POST(request: Request) {
                     
                     <a href="https://vitrio.vercel.app/pro/login" style="display: inline-block; background: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Accéder à mon Espace Pro</a>
                 </div>
+                    <a href="https://vitrio.vercel.app/pro/login" style="display: inline-block; background: #2563EB; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">Accéder à mon Espace Pro</a>
+                </div>
+            `;
+        } else if (type === 'partner_accepted') {
+            // Send to Partner (Congratulations + Code)
+            mailOptions.to = payload.email;
+            mailOptions.subject = '🎉 Félicitations ! Votre compte Vitrio est validé';
+            mailOptions.html = `
+                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #2563EB; margin-bottom: 5px;">Bienvenue chez Vitrio !</h1>
+                        <p style="color: #666; font-size: 1.1em;">Le réseau de confiance pour le vitrage.</p>
+                    </div>
+
+                    <p>Bonjour <strong>${payload.name}</strong>,</p>
+                    
+                    <p>Nous avons le plaisir de vous informer que votre demande de partenariat a été <strong>acceptée</strong>.</p>
+                    
+                    <div style="background-color: #F0FDF4; border: 1px solid #DCFCE7; padding: 20px; border-radius: 8px; margin: 25px 0; text-align: center;">
+                        <p style="margin: 0; color: #166534; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.05em;">Votre Code d'Accès Pro</p>
+                        <p style="margin: 10px 0 0 0; font-size: 2.5em; font-weight: 800; color: #16A34A; letter-spacing: 2px;">${payload.code}</p>
+                    </div>
+
+                    <p>Ce code est strictement personnel. Il vous permettra de vous connecter à votre espace partenaire pour :</p>
+                    <ul style="color: #4B5563; line-height: 1.6;">
+                        <li>Gérer vos disponibilités en temps réel.</li>
+                        <li>Recevoir et confirmer les rendez-vous clients.</li>
+                        <li>Suivre vos commissions et facturations.</li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="https://vitrio.vercel.app/pro/login" style="background-color: #2563EB; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                            Accéder à mon Espace Pro
+                        </a>
+                    </div>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                    
+                    <p style="color: #9CA3AF; font-size: 0.85em; text-align: center;">
+                        Si vous avez des questions, notre équipe support est à votre disposition.<br>
+                        L'équipe Vitrio
+                    </p>
+                </div>
             `;
         } else {
             return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });

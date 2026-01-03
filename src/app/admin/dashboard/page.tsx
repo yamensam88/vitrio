@@ -77,8 +77,38 @@ export default function AdminDashboard() {
 
   async function handleGenerateCode(garageId: number) {
     try {
+      // 1. Find the garage details before doing anything
+      const garage = adminGarages.find(g => g.id === garageId);
+      if (!garage) throw new Error("Garage introuvable");
+
+      // 2. Generate code
       const code = await generateAccessCodeForGarage(garageId);
-      alert(`Code généré avec succès!\n\nCode d'accès : ${code}\n\nUn email a été envoyé au garage (voir console).`);
+
+      // 3. Send Email Notification
+      try {
+        if (garage.email) {
+          console.log(`[EMAIL] Sending acceptance email to ${garage.email}`);
+          await fetch('/api/emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'partner_accepted',
+              payload: {
+                email: garage.email,
+                name: garage.name,
+                code: code
+              }
+            })
+          });
+          alert(`✅ Code généré avec succès : ${code}\n\n📨 Un email de notification a été envoyé au partenaire (${garage.email}).`);
+        } else {
+          alert(`⚠️ Code généré : ${code}\n\n❌ Impossible d'envoyer l'email : Aucune adresse email renseignée pour ce partenaire.`);
+        }
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        alert(`⚠️ Code généré : ${code}\n\n❌ Erreur lors de l'envoi de l'email.`);
+      }
+
       await updateAdminGarageStatus(garageId, 'Actif');
       await loadData(); // Refresh
     } catch (error: any) {
