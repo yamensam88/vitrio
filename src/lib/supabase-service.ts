@@ -291,20 +291,42 @@ export async function getGarageAvailabilities(garageId: string) {
     return data as GarageAvailability[]
 }
 
-export async function addGarageAvailability(availability: Database['public']['Tables']['garage_availabilities']['Insert']) {
-    const { data, error } = await supabase
+export async function deleteGarageAvailability(id: number) {
+    const { error } = await supabase
         .from('garage_availabilities')
-        .insert(availability)
+        .delete()
+        .eq('id', id)
+
+    if (error) throw error
+}
+
+// Offer Management
+export async function createOffer(offer: Database['public']['Tables']['offers']['Insert']) {
+    const { data, error } = await supabase
+        .from('offers')
+        .insert(offer)
         .select()
         .single()
 
     if (error) throw error
-    return data as GarageAvailability
+    return data as Offer
 }
 
-export async function deleteGarageAvailability(id: string) {
+export async function updateOffer(id: string, updates: Database['public']['Tables']['offers']['Update']) {
+    const { data, error } = await supabase
+        .from('offers')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data as Offer
+}
+
+export async function deleteOffer(id: string) {
     const { error } = await supabase
-        .from('garage_availabilities')
+        .from('offers')
         .delete()
         .eq('id', id)
 

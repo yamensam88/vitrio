@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability, COMMISSION_RATE } from "@/lib/supabase-service";
+import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability, getOffersByGarage, createOffer, updateOffer, deleteOffer, COMMISSION_RATE } from "@/lib/supabase-service";
 import type { Database } from "@/lib/supabase";
 import { format, setHours, setMinutes } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -15,7 +15,12 @@ export default function PartnerDashboard() {
     const router = useRouter();
     const [userGarage, setUserGarage] = useState<Garage | null>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
+    const [offers, setOffers] = useState<any[]>([]);
+    const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+    const [editingOffer, setEditingOffer] = useState<any | null>(null);
+    const [offerForm, setOfferForm] = useState({ description: '', price: 0, currency: 'EUR', service_duration: 120 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -54,15 +59,17 @@ export default function PartnerDashboard() {
 
             setUserGarage(garage);
 
-            // Load appointments and availabilities in parallel
-            console.log("DEBUG: Fetching appts and avs...");
-            const [appts, avs] = await Promise.all([
+            // Load appointments, availabilities, and offers in parallel
+            console.log("DEBUG: Fetching appts, avs, and offers...");
+            const [appts, avs, offersData] = await Promise.all([
                 getAppointmentsByGarage(garage.id),
-                getGarageAvailabilities(garage.id)
+                getGarageAvailabilities(garage.id),
+                getOffersByGarage(garage.id)
             ]);
             console.log("DEBUG: Data fetched successfully");
             setAppointments(appts);
             setAvailabilities(avs);
+            setOffers(offersData || []);
         } catch (error: any) {
             console.error('CRITICAL ERROR loading garage data:', error);
             setError("Erreur de chargement des données. Veuillez vérifier votre connexion.");
