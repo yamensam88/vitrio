@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments, COMMISSION_RATE } from "@/lib/supabase-service";
+import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments, COMMISSION_RATE, deleteAdminGarage } from "@/lib/supabase-service";
 import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase-admin";
 import { useRouter } from "next/navigation";
 import type { Database } from "@/lib/supabase";
@@ -78,7 +78,7 @@ export default function AdminDashboard() {
   async function handleGenerateCode(garageId: number) {
     try {
       const code = await generateAccessCodeForGarage(garageId);
-      alert(`Code généré avec succès !\n\nCode d'accès : ${code}\n\nUn email a été envoyé au garage (voir console).`);
+      alert(`Code généré avec succès!\n\nCode d'accès : ${code}\n\nUn email a été envoyé au garage (voir console).`);
       await updateAdminGarageStatus(garageId, 'Actif');
       await loadData(); // Refresh
     } catch (error: any) {
@@ -197,6 +197,8 @@ export default function AdminDashboard() {
                     a.status && a.status.startsWith('En attente')
                   ).length;
 
+                  const normalizedStatus = (garage.status || '').trim();
+
                   // Debug logging to verify exact matches
                   if (garageApps.length > 0) {
                     console.log(`[DEBUG] Garage: ${garage.name} (${garage.garage_id})`);
@@ -208,7 +210,7 @@ export default function AdminDashboard() {
                     <tr key={garage.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
                       <td style={{ padding: '1rem 1.5rem', fontWeight: 600 }}>
                         {garage.name}
-                        {garage.status === 'En attente' && (
+                        {normalizedStatus === 'En attente' && (
                           <div style={{ fontSize: '0.75rem', color: '#EF4444', marginTop: 4 }}>• Action requise</div>
                         )}
                         {garage.generated_code && (
@@ -278,15 +280,15 @@ export default function AdminDashboard() {
                           borderRadius: '999px',
                           fontSize: '0.85rem',
                           fontWeight: 600,
-                          backgroundColor: garage.status === 'En attente' ? '#FEF9C3' : garage.status === 'Actif' ? '#DCFCE7' : '#FEE2E2',
-                          color: garage.status === 'En attente' ? '#854D0E' : garage.status === 'Actif' ? '#166534' : '#991B1B'
+                          backgroundColor: normalizedStatus === 'En attente' ? '#FEF9C3' : normalizedStatus === 'Actif' ? '#DCFCE7' : '#FEE2E2',
+                          color: normalizedStatus === 'En attente' ? '#854D0E' : normalizedStatus === 'Actif' ? '#166534' : '#991B1B'
                         }}>
                           {garage.status}
                         </span>
                       </td>
                       <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                          {garage.status === 'En attente' && (
+                          {normalizedStatus === 'En attente' && (
                             <>
                               <button
                                 onClick={() => handleGenerateCode(garage.id)}
@@ -302,9 +304,37 @@ export default function AdminDashboard() {
                               >
                                 ✕ Refuser
                               </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('⚠️ Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT ce partenaire ?\n\nCette action est irréversible.')) {
+                                    try {
+                                      await deleteAdminGarage(garage.id);
+                                      loadData(); // Refresh list
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert("Erreur lors de la suppression");
+                                    }
+                                  }
+                                }}
+                                title="Supprimer définitivement"
+                                style={{
+                                  padding: '0.4rem 0.6rem',
+                                  backgroundColor: '#FFF1F2',
+                                  border: '1px solid #FECACA',
+                                  color: '#EF4444',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.85rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                🗑️
+                              </button>
                             </>
                           )}
-                          {garage.status === 'Actif' && (
+                          {normalizedStatus === 'Actif' && (
                             <button
                               onClick={() => handleUpdateStatus(garage.id, 'Suspendu')}
                               style={{ padding: '0.4rem 0.8rem', backgroundColor: 'transparent', border: '1px solid #ef4444', color: '#ef4444', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
@@ -312,13 +342,43 @@ export default function AdminDashboard() {
                               Suspendre
                             </button>
                           )}
-                          {garage.status === 'Suspendu' && (
-                            <button
-                              onClick={() => handleUpdateStatus(garage.id, 'Actif')}
-                              style={{ padding: '0.4rem 0.8rem', backgroundColor: '#10b981', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
-                            >
-                              ↻ Réactiver
-                            </button>
+                          {normalizedStatus === 'Suspendu' && (
+                            <>
+                              <button
+                                onClick={() => handleUpdateStatus(garage.id, 'Actif')}
+                                style={{ padding: '0.4rem 0.8rem', backgroundColor: '#10b981', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}
+                              >
+                                ↻ Réactiver
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  if (confirm('⚠️ Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT ce partenaire ?\n\nCette action est irréversible.')) {
+                                    try {
+                                      await deleteAdminGarage(garage.id);
+                                      loadData(); // Refresh list
+                                    } catch (err) {
+                                      console.error(err);
+                                      alert("Erreur lors de la suppression");
+                                    }
+                                  }
+                                }}
+                                title="Supprimer définitivement"
+                                style={{
+                                  padding: '0.4rem 0.6rem',
+                                  backgroundColor: '#FFF1F2',
+                                  border: '1px solid #FECACA',
+                                  color: '#EF4444',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontSize: '0.85rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                🗑️
+                              </button>
+                            </>
                           )}
                         </div>
                       </td>
