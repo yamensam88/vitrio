@@ -68,6 +68,21 @@ export default function RegisterPro() {
                 franchise_offerte: formData.offerType === 'finance' || formData.offerType === 'combined'
             });
 
+            // NOTIFICATION: Send Email to Admin
+            await fetch('/api/emails', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'admin_alert_new_partner',
+                    payload: {
+                        name: formData.name,
+                        city: formData.city,
+                        email: formData.email,
+                        phone: formData.phone
+                    }
+                })
+            });
+
             alert('Inscription envoyée ! Vous recevrez un email avec votre code d\'accès une fois validé par l\'admin.');
             router.push('/pro');
         } catch (error: any) {

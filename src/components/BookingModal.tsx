@@ -113,6 +113,21 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     address: formData.postalCode // Map postal code to address as rough location if needed
                 });
 
+                // NOTIFICATION: Send Email to Partner (and Admin)
+                await fetch('/api/emails', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: 'partner_alert_new_appointment',
+                        payload: {
+                            garageEmail: garage.email,
+                            clientName: formData.fullName,
+                            vehicle: formData.plate,
+                            date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })
+                        }
+                    })
+                });
+
                 // Also add to local context as a fallback/instant update
                 addAppointment({
                     clientName: formData.fullName,

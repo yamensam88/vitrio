@@ -27,4 +27,5 @@ export interface Garage {
     homeService?: boolean; // Intervention à domicile/travail
     courtesyVehicle?: boolean; // Véhicule de courtoisie
     franchiseOfferte?: boolean; // Franchise offerte
+    email?: string; // Contact email for notifications
 }
