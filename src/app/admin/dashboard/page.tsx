@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       try {
         if (garage.email) {
           console.log(`[EMAIL] Sending acceptance email to ${garage.email}`);
-          await fetch('/api/emails', {
+          const res = await fetch('/api/emails', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -100,6 +100,12 @@ export default function AdminDashboard() {
               }
             })
           });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Erreur serveur lors de l\'envoi');
+          }
+
           alert(`✅ Code généré avec succès : ${code}\n\n📨 Un email de notification a été envoyé au partenaire (${garage.email}).`);
         } else {
           alert(`⚠️ Code généré : ${code}\n\n❌ Impossible d'envoyer l'email : Aucune adresse email renseignée pour ce partenaire.`);
