@@ -99,6 +99,15 @@ export async function getAdminGarages() {
     return data as AdminGarage[]
 }
 
+export async function deleteAdminGarage(id: number) {
+    const { error } = await supabase
+        .from('admin_garages')
+        .delete()
+        .eq('id', id)
+
+    if (error) throw error
+}
+
 export async function createAdminGarage(garage: Database['public']['Tables']['admin_garages']['Insert']) {
     const { data, error } = await supabase
         .from('admin_garages')
