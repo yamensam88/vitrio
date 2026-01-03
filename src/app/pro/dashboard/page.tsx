@@ -188,6 +188,198 @@ export default function PartnerDashboard() {
                     </div>
                 </div>
 
+                {/* Mes Offres Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>Mes Offres</h2>
+                        <button
+                            onClick={() => {
+                                setEditingOffer(null);
+                                setOfferForm({ description: 'Franchise Offerte + Cadeau', price: 150, currency: 'EUR', service_duration: 120 });
+                                setIsOfferModalOpen(true);
+                            }}
+                            style={{
+                                backgroundColor: '#3b82f6',
+                                color: 'white',
+                                border: 'none',
+                                padding: '0.5rem 1rem',
+                                borderRadius: '6px',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
+                        >
+                            + Ajouter une offre
+                        </button>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+                        {offers.map(offer => (
+                            <div key={offer.id} style={{
+                                backgroundColor: 'white',
+                                borderRadius: '12px',
+                                padding: '1.25rem',
+                                border: '1px solid #e2e8f0',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                            }}>
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                    <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.25rem' }}>Description</div>
+                                    <div style={{ fontWeight: 600, color: '#0f172a', lineHeight: '1.4' }}>{offer.description}</div>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end' }}>
+                                    <div>
+                                        <div style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '0.1rem' }}>Valeur</div>
+                                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#3b82f6' }}>{offer.price}€</div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            onClick={() => {
+                                                setEditingOffer(offer);
+                                                setOfferForm({
+                                                    description: offer.description,
+                                                    price: offer.price,
+                                                    currency: offer.currency,
+                                                    service_duration: offer.service_duration
+                                                });
+                                                setIsOfferModalOpen(true);
+                                            }}
+                                            style={{
+                                                padding: '0.4rem 0.75rem',
+                                                fontSize: '0.85rem',
+                                                color: '#3b82f6',
+                                                backgroundColor: '#eff6ff',
+                                                borderRadius: '6px',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            Modifier
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
+                                                    try {
+                                                        await deleteOffer(offer.id);
+                                                        setOffers(prev => prev.filter(o => o.id !== offer.id));
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert("Erreur lors de la suppression");
+                                                    }
+                                                }
+                                            }}
+                                            style={{
+                                                padding: '0.4rem 0.75rem',
+                                                fontSize: '0.85rem',
+                                                color: '#ef4444',
+                                                backgroundColor: '#fef2f2',
+                                                borderRadius: '6px',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        {offers.length === 0 && (
+                            <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2rem', color: '#64748b', backgroundColor: '#e2e8f0', borderRadius: '12px' }}>
+                                Aucune offre active. Ajoutez-en une pour être visible !
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Offer Modal */}
+                {isOfferModalOpen && (
+                    <div style={{
+                        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 50,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                        <div style={{ backgroundColor: 'white', borderRadius: '16px', padding: '1.5rem', width: '90%', maxWidth: '500px' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>
+                                {editingOffer ? 'Modifier l\'offre' : 'Nouvelle offre'}
+                            </h3>
+                            <form onSubmit={async (e) => {
+                                e.preventDefault();
+                                try {
+                                    if (editingOffer) {
+                                        const updated = await updateOffer(editingOffer.id, {
+                                            description: offerForm.description,
+                                            price: offerForm.price,
+                                            currency: offerForm.currency,
+                                            service_duration: offerForm.service_duration
+                                        });
+                                        setOffers(prev => prev.map(o => o.id === updated.id ? updated : o));
+                                    } else {
+                                        const newOffer = await createOffer({
+                                            garage_id: userGarage!.id,
+                                            id: `offer_${Date.now()}`,
+                                            description: offerForm.description,
+                                            price: offerForm.price,
+                                            currency: offerForm.currency,
+                                            service_duration: offerForm.service_duration,
+                                            availability: new Date().toISOString()
+                                        });
+                                        setOffers(prev => [newOffer, ...prev]);
+                                    }
+                                    setIsOfferModalOpen(false);
+                                } catch (err) {
+                                    console.error(err);
+                                    alert("Erreur lors de l'enregistrement");
+                                }
+                            }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Description de l'offre</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={offerForm.description}
+                                            onChange={e => setOfferForm({ ...offerForm, description: e.target.value })}
+                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                            placeholder="ex: Franchise Offerte (150€) + Nintendo Switch"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Valeur Total (Cadeau + Franchise)</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <input
+                                                type="number"
+                                                required
+                                                value={offerForm.price}
+                                                onChange={e => setOfferForm({ ...offerForm, price: parseFloat(e.target.value) || 0 })}
+                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                            />
+                                            <span style={{ fontWeight: 600 }}>€</span>
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'end', gap: '0.75rem', marginTop: '1rem' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsOfferModalOpen(false)}
+                                            style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', backgroundColor: 'white', cursor: 'pointer' }}
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            style={{ padding: '0.5rem 1rem', borderRadius: '8px', backgroundColor: '#3b82f6', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer' }}
+                                        >
+                                            Enregistrer
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
                 {/* Appointments */}
                 <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
                     <div style={{ padding: '1.5rem', borderBottom: '1px solid #F1F5F9' }}>
