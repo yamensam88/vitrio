@@ -105,6 +105,32 @@ export async function POST(request: Request) {
                         L'équipe Vitrio
                     </p>
                 </div>
+                </div>
+            `;
+        } else if (type === 'client_booking_confirmation') {
+            // Send to Client
+            mailOptions.to = payload.clientEmail;
+            mailOptions.subject = '✅ Confirmation de votre demande de RDV - Vitrio';
+            mailOptions.html = `
+                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                    <h2 style="color: #2563EB; text-align: center;">Demande de RDV bien reçue !</h2>
+                    
+                    <p>Bonjour <strong>${payload.clientName}</strong>,</p>
+                    
+                    <p>Nous vous confirmons la bonne prise en compte de votre demande de rendez-vous pour votre <strong>${payload.vehicle}</strong>.</p>
+                    
+                    <div style="background-color: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="margin-top: 0; color: #1F2937;">Détails du rendez-vous</h3>
+                        <p style="margin: 5px 0;"><strong>Garage :</strong> ${payload.garageName}</p>
+                        <p style="margin: 5px 0;"><strong>Date :</strong> ${payload.date}</p>
+                        <p style="margin: 5px 0;"><strong>Adresse :</strong> ${payload.garageAddress}</p>
+                    </div>
+
+                    <p><strong>🚨 Prochaine étape :</strong></p>
+                    <p>Le garage va vérifier votre dossier d'assurance sous 24h. Si des informations complémentaires sont nécessaires, ils vous contacteront directement.</p>
+
+                    <p style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #6B7280;">Merci de votre confiance,<br>L'équipe Vitrio</p>
+                </div>
             `;
         } else {
             return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });

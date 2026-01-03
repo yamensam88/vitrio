@@ -113,20 +113,39 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     address: formData.postalCode // Map postal code to address as rough location if needed
                 });
 
-                // NOTIFICATION: Send Email to Partner (and Admin)
-                await fetch('/api/emails', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        type: 'partner_alert_new_appointment',
-                        payload: {
-                            garageEmail: garage.email,
-                            clientName: formData.fullName,
-                            vehicle: formData.plate,
-                            date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })
-                        }
+                // NOTIFICATION: Send Emails (Partner + Client)
+                await Promise.all([
+                    // 1. Alert Partner
+                    fetch('/api/emails', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'partner_alert_new_appointment',
+                            payload: {
+                                garageEmail: garage.email,
+                                clientName: formData.fullName,
+                                vehicle: formData.plate,
+                                date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })
+                            }
+                        })
+                    }),
+                    // 2. Confirm to Client
+                    fetch('/api/emails', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            type: 'client_booking_confirmation',
+                            payload: {
+                                clientEmail: formData.email,
+                                clientName: formData.fullName,
+                                vehicle: formData.plate,
+                                date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr }),
+                                garageName: garage.name,
+                                garageAddress: garage.address
+                            }
+                        })
                     })
-                });
+                ]);
 
                 // Also add to local context as a fallback/instant update
                 addAppointment({
