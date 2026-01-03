@@ -8,7 +8,7 @@ interface GarageCardProps {
 }
 
 export const GarageCard = ({ garage, onSelect }: GarageCardProps) => {
-    const minPrice = Math.min(...garage.offers.map((o) => o.price));
+    const bestOffer = garage.offers.reduce((prev, current) => (prev.price > current.price) ? prev : current, garage.offers[0]);
 
     return (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -74,19 +74,31 @@ export const GarageCard = ({ garage, onSelect }: GarageCardProps) => {
             </div>
 
             {/* Footer / Price */}
-            <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Offerts</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-main)' }}>
-                        {minPrice}€
-                    </div>
+            <div style={{ marginTop: 'auto' }}>
+                <div style={{
+                    fontSize: '0.85rem',
+                    color: '#0369a1',
+                    fontWeight: 600,
+                    marginBottom: '0.75rem',
+                    lineHeight: '1.4'
+                }}>
+                    {bestOffer?.description || 'Offre Spéciale'}
                 </div>
-                <button
-                    className="btn btn-primary"
-                    onClick={() => onSelect(garage)}
-                >
-                    Voir l'offre
-                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Valeur</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-main)' }}>
+                            {bestOffer?.price}€
+                        </div>
+                    </div>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => onSelect(garage)}
+                    >
+                        Voir l'offre
+                    </button>
+                </div>
             </div>
         </div>
     );
