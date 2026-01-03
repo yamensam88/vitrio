@@ -122,7 +122,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                         body: JSON.stringify({
                             type: 'partner_alert_new_appointment',
                             payload: {
-                                garageEmail: garage.email,
+                                garageId: garage.id,
                                 clientName: formData.fullName,
                                 vehicle: formData.plate,
                                 date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })

@@ -43,7 +43,24 @@ export async function POST(request: Request) {
             `;
         } else if (type === 'partner_alert_new_appointment') {
             // Send to Partner + Admin Copy
-            mailOptions.to = payload.garageEmail;
+            // Lookup partner email from admin_garages using garageId
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+            const { data: adminGarage, error: lookupError } = await supabaseAdmin
+                .from('admin_garages')
+                .select('email')
+                .eq('garage_id', payload.garageId)
+                .single();
+
+            if (lookupError || !adminGarage?.email) {
+                console.error('Failed to lookup partner email:', lookupError);
+                return NextResponse.json({ error: 'Partner email not found' }, { status: 404 });
+            }
+
+            mailOptions.to = adminGarage.email;
             mailOptions.bcc = process.env.GMAIL_USER; // Admin gets a silent copy
             mailOptions.subject = '📅 Nouveau Rendez-vous Client - Vitrio';
             mailOptions.html = `
