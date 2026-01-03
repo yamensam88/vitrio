@@ -19,7 +19,18 @@ export default function PartnerDashboard() {
     const [offers, setOffers] = useState<any[]>([]);
     const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
     const [editingOffer, setEditingOffer] = useState<any | null>(null);
-    const [offerForm, setOfferForm] = useState({ description: '', price: 0, currency: 'EUR', service_duration: 120 });
+    const [offerForm, setOfferForm] = useState({
+        offerType: 'finance' as 'finance' | 'gift' | 'combined',
+        customName: '',
+        customValue: 0,
+        combinedRefund: 0,
+        combinedGiftValue: 0,
+        // Legacy fields for backward compatibility/saving
+        description: '',
+        price: 0,
+        currency: 'EUR',
+        service_duration: 120
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -195,7 +206,17 @@ export default function PartnerDashboard() {
                         <button
                             onClick={() => {
                                 setEditingOffer(null);
-                                setOfferForm({ description: 'Franchise Offerte + Cadeau', price: 150, currency: 'EUR', service_duration: 120 });
+                                setOfferForm({
+                                    offerType: 'finance',
+                                    customName: '',
+                                    customValue: 150,
+                                    combinedRefund: 50,
+                                    combinedGiftValue: 100,
+                                    description: '',
+                                    price: 150,
+                                    currency: 'EUR',
+                                    service_duration: 120
+                                });
                                 setIsOfferModalOpen(true);
                             }}
                             style={{
@@ -307,11 +328,28 @@ export default function PartnerDashboard() {
                             </h3>
                             <form onSubmit={async (e) => {
                                 e.preventDefault();
+
+                                // Calculate Final Description & Price based on Type
+                                let finalDesc = '';
+                                let finalPrice = 0;
+
+                                if (offerForm.offerType === 'finance') {
+                                    finalPrice = offerForm.customValue;
+                                    finalDesc = `Franchise offerte jusqu'à ${finalPrice}€`;
+                                } else if (offerForm.offerType === 'gift') {
+                                    finalPrice = offerForm.customValue;
+                                    finalDesc = `${offerForm.customName} (${finalPrice}€)`;
+                                } else {
+                                    // Combined
+                                    finalPrice = (offerForm.combinedRefund || 0) + (offerForm.combinedGiftValue || 0);
+                                    finalDesc = `Franchise (${offerForm.combinedRefund}€) + ${offerForm.customName}`;
+                                }
+
                                 try {
                                     if (editingOffer) {
                                         const updated = await updateOffer(editingOffer.id, {
-                                            description: offerForm.description,
-                                            price: offerForm.price,
+                                            description: finalDesc,
+                                            price: finalPrice,
                                             currency: offerForm.currency,
                                             service_duration: offerForm.service_duration
                                         });
@@ -320,8 +358,8 @@ export default function PartnerDashboard() {
                                         const newOffer = await createOffer({
                                             garage_id: userGarage!.id,
                                             id: `offer_${Date.now()}`,
-                                            description: offerForm.description,
-                                            price: offerForm.price,
+                                            description: finalDesc,
+                                            price: finalPrice,
                                             currency: offerForm.currency,
                                             service_duration: offerForm.service_duration,
                                             availability: new Date().toISOString()
@@ -335,30 +373,147 @@ export default function PartnerDashboard() {
                                 }
                             }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Description de l'offre</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={offerForm.description}
-                                            onChange={e => setOfferForm({ ...offerForm, description: e.target.value })}
-                                            style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                                            placeholder="ex: Franchise Offerte (150€) + Nintendo Switch"
-                                        />
+
+                                    {/* OFFER TYPE SELECTOR */}
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOfferForm(prev => ({ ...prev, offerType: 'finance' }))}
+                                            style={{
+                                                flex: 1, padding: '0.5rem', fontSize: '0.9rem', borderRadius: '6px',
+                                                border: '1px solid',
+                                                borderColor: offerForm.offerType === 'finance' ? '#0284C7' : '#E2E8F0',
+                                                backgroundColor: offerForm.offerType === 'finance' ? '#E0F2FE' : 'white',
+                                                color: offerForm.offerType === 'finance' ? '#0284C7' : '#64748B',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            💰 Remboursement
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOfferForm(prev => ({ ...prev, offerType: 'gift' }))}
+                                            style={{
+                                                flex: 1, padding: '0.5rem', fontSize: '0.9rem', borderRadius: '6px',
+                                                border: '1px solid',
+                                                borderColor: offerForm.offerType === 'gift' ? '#0284C7' : '#E2E8F0',
+                                                backgroundColor: offerForm.offerType === 'gift' ? '#E0F2FE' : 'white',
+                                                color: offerForm.offerType === 'gift' ? '#0284C7' : '#64748B',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            🎁 Cadeau
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setOfferForm(prev => ({ ...prev, offerType: 'combined' }))}
+                                            style={{
+                                                flex: 1, padding: '0.5rem', fontSize: '0.9rem', borderRadius: '6px',
+                                                border: '1px solid',
+                                                borderColor: offerForm.offerType === 'combined' ? '#0284C7' : '#E2E8F0',
+                                                backgroundColor: offerForm.offerType === 'combined' ? '#E0F2FE' : 'white',
+                                                color: offerForm.offerType === 'combined' ? '#0284C7' : '#64748B',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            ✨ Les deux
+                                        </button>
                                     </div>
-                                    <div>
-                                        <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem' }}>Valeur Total (Cadeau + Franchise)</label>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                            <input
-                                                type="number"
-                                                required
-                                                value={offerForm.price}
-                                                onChange={e => setOfferForm({ ...offerForm, price: parseFloat(e.target.value) || 0 })}
-                                                style={{ flex: 1, padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
-                                            />
-                                            <span style={{ fontWeight: 600 }}>€</span>
+
+                                    {/* DYNAMIC FIELDS */}
+                                    {offerForm.offerType === 'finance' ? (
+                                        <div>
+                                            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Montant offert / Remboursé</label>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <input
+                                                    required
+                                                    type="number"
+                                                    style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                    value={offerForm.customValue}
+                                                    onChange={e => setOfferForm({ ...offerForm, customValue: parseInt(e.target.value) || 0 })}
+                                                    placeholder="100"
+                                                />
+                                                <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                            </div>
+                                            <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: 4 }}>
+                                                Sera affiché comme : "Franchise offerte jusqu'à {offerForm.customValue}€"
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : offerForm.offerType === 'gift' ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Nature du Cadeau</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                    value={offerForm.customName}
+                                                    onChange={e => setOfferForm({ ...offerForm, customName: e.target.value })}
+                                                    placeholder="ex: Nintendo Switch Lite"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Valeur Estimée</label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <input
+                                                        required
+                                                        type="number"
+                                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                        value={offerForm.customValue}
+                                                        onChange={e => setOfferForm({ ...offerForm, customValue: parseInt(e.target.value) || 0 })}
+                                                        placeholder="200"
+                                                    />
+                                                    <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Montant Remboursé (Franchise)</label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <input
+                                                        required
+                                                        type="number"
+                                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                        value={offerForm.combinedRefund || 0}
+                                                        onChange={e => setOfferForm({ ...offerForm, combinedRefund: parseInt(e.target.value) || 0 })}
+                                                        placeholder="100"
+                                                    />
+                                                    <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Nature du Cadeau</label>
+                                                <input
+                                                    required
+                                                    type="text"
+                                                    style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                    value={offerForm.customName}
+                                                    onChange={e => setOfferForm({ ...offerForm, customName: e.target.value })}
+                                                    placeholder="ex: Carte Carburant"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.25rem', color: '#0C4A6E' }}>Valeur du Cadeau</label>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                    <input
+                                                        required
+                                                        type="number"
+                                                        style={{ flex: 1, padding: '0.75rem', borderRadius: '6px', border: '1px solid #BAE6FD' }}
+                                                        value={offerForm.combinedGiftValue || 0}
+                                                        onChange={e => setOfferForm({ ...offerForm, combinedGiftValue: parseInt(e.target.value) || 0 })}
+                                                        placeholder="50"
+                                                    />
+                                                    <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
+                                                </div>
+                                            </div>
+                                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#059669', textAlign: 'right', marginTop: '0.5rem' }}>
+                                                Valeur Totale affichée : {(offerForm.combinedRefund || 0) + (offerForm.combinedGiftValue || 0)} €
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div style={{ display: 'flex', justifyContent: 'end', gap: '0.75rem', marginTop: '1rem' }}>
                                         <button
                                             type="button"
