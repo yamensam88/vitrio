@@ -15,7 +15,6 @@ export default function PartnerDashboard() {
     const router = useRouter();
     const [userGarage, setUserGarage] = useState<Garage | null>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [availabilities, setAvailabilities] = useState<any[]>([]);
     const [offers, setOffers] = useState<any[]>([]);
     const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);

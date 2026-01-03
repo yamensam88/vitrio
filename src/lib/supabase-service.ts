@@ -291,6 +291,17 @@ export async function getGarageAvailabilities(garageId: string) {
     return data as GarageAvailability[]
 }
 
+export async function addGarageAvailability(availability: Database['public']['Tables']['garage_availabilities']['Insert']) {
+    const { data, error } = await supabase
+        .from('garage_availabilities')
+        .insert(availability)
+        .select()
+        .single()
+
+    if (error) throw error
+    return data as GarageAvailability
+}
+
 export async function deleteGarageAvailability(id: number) {
     const { error } = await supabase
         .from('garage_availabilities')
