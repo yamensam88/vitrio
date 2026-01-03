@@ -258,7 +258,16 @@ export default function PartnerDashboard() {
                                         <button
                                             onClick={() => {
                                                 setEditingOffer(offer);
+                                                // Heuristic to set initial form state from existing data
+                                                const isCombined = offer.description.includes(' + ');
+                                                const isGift = !isCombined && !offer.description.includes('Franchise');
+
                                                 setOfferForm({
+                                                    offerType: isCombined ? 'combined' : isGift ? 'gift' : 'finance',
+                                                    customName: '', // Hard to parse perfectly without structured data
+                                                    customValue: offer.price,
+                                                    combinedRefund: 0,
+                                                    combinedGiftValue: 0,
                                                     description: offer.description,
                                                     price: offer.price,
                                                     currency: offer.currency,
