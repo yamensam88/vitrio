@@ -114,7 +114,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                 });
 
                 // NOTIFICATION: Send Emails (Partner + Client)
-                await Promise.all([
+                const emailResults = await Promise.allSettled([
                     // 1. Alert Partner
                     fetch('/api/emails', {
                         method: 'POST',
@@ -128,6 +128,11 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                                 date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })
                             }
                         })
+                    }).then(async res => {
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(`Partner Email Failed: ${err.error}`);
+                        }
                     }),
                     // 2. Confirm to Client
                     fetch('/api/emails', {
@@ -144,8 +149,22 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                                 garageAddress: garage.address
                             }
                         })
+                    }).then(async res => {
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(`Client Email Failed: ${err.error}`);
+                        }
                     })
                 ]);
+
+                // Check for failures
+                const failures = emailResults.filter(r => r.status === 'rejected');
+                if (failures.length > 0) {
+                    console.error("Some emails failed to send:", failures);
+                    alert("⚠️ La réservation est confirmée, mais une erreur est survenue lors de l'envoi des emails de confirmation. Veuillez vérifier vos spams ou contacter le support.");
+                } else {
+                    console.log("Both emails sent successfully");
+                }
 
                 // Also add to local context as a fallback/instant update
                 addAppointment({
