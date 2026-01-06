@@ -90,9 +90,9 @@ export async function POST(request: Request) {
                     <p>Un client vient de réserver un créneau dans votre garage via Vitrio.</p>
                     
                     <div style="background: #ECFDF5; padding: 15px; border-radius: 8px; border: 1px solid #6EE7B7; margin: 20px 0;">
-                        <p><strong>Client :</strong> ${payload.clientName}</p>
                         <p><strong>Véhicule :</strong> ${payload.vehicle}</p>
                         <p><strong>Date :</strong> ${payload.date}</p>
+                        <p style="color: #666; font-style: italic; margin-top: 10px;">Connectez-vous pour voir les coordonnées du client.</p>
                     </div>
 
                     <p style="font-weight: bold; font-size: 1.1em;">Action requise :</p>
