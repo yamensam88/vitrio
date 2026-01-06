@@ -168,6 +168,37 @@ export async function POST(request: Request) {
                     <p style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #6B7280;">Merci de votre confiance,<br>L'équipe Vitrio</p>
                 </div>
             `;
+        } else if (type === 'test_partner_email') {
+            // Admin Test Mode
+            console.log('[DEBUG] Test email request for garageId:', payload.garageId);
+
+            const { createClient } = await import('@supabase/supabase-js');
+            const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+            const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
+
+            if (!supabaseServiceKey) return NextResponse.json({ error: 'Missing Service Key' }, { status: 500 });
+
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+
+            const { data: adminGarage, error } = await supabaseAdmin
+                .from('admin_garages')
+                .select('email')
+                .eq('garage_id', payload.garageId)
+                .maybeSingle();
+
+            if (error || !adminGarage?.email) {
+                return NextResponse.json({ error: 'Garage/Email not found for ID: ' + payload.garageId }, { status: 404 });
+            }
+
+            mailOptions.to = adminGarage.email;
+            mailOptions.subject = '🧪 Test Email - Vitrio Integration';
+            mailOptions.html = `
+                <div style="font-family: sans-serif; padding: 20px;">
+                    <h2 style="color: #2563EB;">Ceci est un email de test</h2>
+                    <p>Si vous recevez ceci, la configuration est correcte !</p>
+                    <p><strong>Garage ID:</strong> ${payload.garageId}</p>
+                </div>
+            `;
         } else {
             return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });
         }

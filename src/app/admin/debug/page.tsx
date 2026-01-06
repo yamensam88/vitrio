@@ -93,15 +93,39 @@ export default function DebugPage() {
                                         {garage.garage_id || <span className="text-gray-300">Null</span>}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                        {isOrphan && (
-                                            <span className="text-red-600 font-bold">⚠️ Lien manquant (Email échouera)</span>
-                                        )}
-                                        {isMissingEmail && (
-                                            <span className="text-red-600 font-bold block">⚠️ Email manquant</span>
-                                        )}
-                                        {!isOrphan && !isMissingEmail && (
-                                            <span className="text-green-500">OK</span>
-                                        )}
+                                        <div className="flex items-center space-x-4">
+                                            {isOrphan && <span className="text-red-600 font-bold">⚠️ Lien manquant</span>}
+                                            {isMissingEmail && <span className="text-red-600 font-bold">⚠️ Email manquant</span>}
+
+                                            {!isOrphan && !isMissingEmail && garage.garage_id && (
+                                                <>
+                                                    <span className="text-green-500">OK</span>
+                                                    <button
+                                                        onClick={async () => {
+                                                            if (!confirm('Envoyer un email de test à ' + garage.email + ' ?')) return;
+                                                            try {
+                                                                const res = await fetch('/api/emails', {
+                                                                    method: 'POST',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({
+                                                                        type: 'test_partner_email',
+                                                                        payload: { garageId: garage.garage_id }
+                                                                    })
+                                                                });
+                                                                const data = await res.json();
+                                                                if (res.ok) alert('Succès! Envoyé à: ' + data.sentTo);
+                                                                else alert('Erreur: ' + data.error);
+                                                            } catch (e) {
+                                                                alert('Erreur réseau');
+                                                            }
+                                                        }}
+                                                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs hover:bg-blue-200"
+                                                    >
+                                                        Test Email
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             );
