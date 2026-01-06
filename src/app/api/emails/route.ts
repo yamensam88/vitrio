@@ -172,8 +172,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Invalid email type' }, { status: 400 });
         }
 
-        await transporter.sendMail(mailOptions);
-        return NextResponse.json({ success: true });
+        const info = await transporter.sendMail(mailOptions);
+        console.log('[DEBUG] Email sent successfully to:', mailOptions.to);
+        return NextResponse.json({ success: true, sentTo: mailOptions.to, messageId: info.messageId });
 
     } catch (error: any) {
         console.error('Email API Error:', error);

@@ -134,6 +134,8 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                             const err = await res.json();
                             throw new Error(`Partner Email Failed: ${err.error}`);
                         }
+                        const data = await res.json();
+                        alert(`DEBUG: Email partenaire envoyé à : ${data.sentTo}`);
                     }),
                     // 2. Confirm to Client
                     fetch('/api/emails', {
