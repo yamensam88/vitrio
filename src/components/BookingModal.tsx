@@ -114,6 +114,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                 });
 
                 // NOTIFICATION: Send Emails (Partner + Client)
+                console.log("[DEBUG] Sending partner alert for garageId:", garage.id);
                 const emailResults = await Promise.allSettled([
                     // 1. Alert Partner
                     fetch('/api/emails', {

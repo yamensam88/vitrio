@@ -44,22 +44,33 @@ export async function POST(request: Request) {
         } else if (type === 'partner_alert_new_appointment') {
             // Send to Partner + Admin Copy
             // Lookup partner email from admin_garages using garageId
-            console.log('[DEBUG] Partner email lookup - garageId:', payload.garageId);
+            const garageIdToLookup = String(payload.garageId).trim();
+            console.log(`[DEBUG] Partner email lookup - GarageID: "${garageIdToLookup}" (Type: ${typeof payload.garageId})`);
 
             const { createClient } = await import('@supabase/supabase-js');
             const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-            const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+            // Try standard name and common alternative
+            const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY;
 
-            console.log('[DEBUG] Supabase URL:', supabaseUrl ? 'SET' : 'MISSING');
-            console.log('[DEBUG] Service Role Key:', supabaseServiceKey ? 'SET' : 'MISSING');
+            if (!supabaseServiceKey) {
+                console.error('[CRITICAL] SUPABASE_SERVICE_ROLE_KEY is MISSING in Environment Variables!');
+                return NextResponse.json({ error: 'Server misconfiguration: Missing Service Key' }, { status: 500 });
+            }
 
-            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+            console.log('[DEBUG] Initializing Supabase Admin Client...');
+            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false
+                }
+            });
 
+            console.log('[DEBUG] Querying admin_garages for garage_id:', garageIdToLookup);
             const { data: adminGarage, error: lookupError } = await supabaseAdmin
                 .from('admin_garages')
-                .select('email')
-                .eq('garage_id', payload.garageId)
-                .single();
+                .select('id, email, garage_id') // Select specific fields to verify
+                .eq('garage_id', garageIdToLookup)
+                .maybeSingle(); // Use maybeSingle to avoid error on 0 rows, we handle null manually
 
             console.log('[DEBUG] Lookup result - data:', adminGarage);
             console.log('[DEBUG] Lookup result - error:', lookupError);
