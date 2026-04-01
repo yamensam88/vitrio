@@ -70,8 +70,8 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // Allow access to pro login page
-    if (pathname === '/pro/login' || pathname === '/pro/register') {
+    // Allow access to the unified pro landing page (which contains login and register)
+    if (pathname === '/pro') {
         const token = request.cookies.get('pro_session')?.value
         if (token) {
             try {
@@ -81,17 +81,17 @@ export async function middleware(request: NextRequest) {
                 const dashboardUrl = new URL('/pro/dashboard', request.url)
                 return NextResponse.redirect(dashboardUrl)
             } catch (e) {
-                // Invalid session, let them access login
+                // Invalid session, let them access landing
             }
         }
         return NextResponse.next()
     }
 
-    // Protect all other /pro/* routes
-    if (pathname.startsWith('/pro')) {
+    // Protect all other /pro/* routes (like /pro/dashboard)
+    if (pathname.startsWith('/pro/')) {
         const token = request.cookies.get('pro_session')?.value
         if (!token) {
-            const loginUrl = new URL('/pro/login', request.url)
+            const loginUrl = new URL('/pro', request.url)
             return NextResponse.redirect(loginUrl)
         }
 
@@ -100,7 +100,7 @@ export async function middleware(request: NextRequest) {
             await jwtVerify(token, secret)
             return NextResponse.next()
         } catch (error) {
-            const loginUrl = new URL('/pro/login', request.url)
+            const loginUrl = new URL('/pro', request.url)
             const response = NextResponse.redirect(loginUrl)
             response.cookies.delete('pro_session')
             return response
