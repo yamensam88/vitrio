@@ -1,0 +1,95 @@
+
+> parebrise-comparateur@0.1.0 lint
+> eslint
+
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\middleware.ts
+   23:19  warning  'refreshToken' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   66:18  warning  'error' is defined but never used                  @typescript-eslint/no-unused-vars
+   83:22  warning  'e' is defined but never used                      @typescript-eslint/no-unused-vars
+  102:18  warning  'error' is defined but never used                  @typescript-eslint/no-unused-vars
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\admin\dashboard\page.tsx
+  31:6   warning  React Hook useEffect has a missing dependency: 'checkAuthAndLoadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  88:21  error    Unexpected any. Specify a different type                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\admin\debug\page.tsx
+   18:8   warning  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   28:18  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  117:75  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                               react/no-unescaped-entities
+  117:81  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                               react/no-unescaped-entities
+  118:63  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                               react/no-unescaped-entities
+  118:71  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                               react/no-unescaped-entities
+  118:97  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                               react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\admin\login\page.tsx
+   18:8   warning  React Hook useEffect has a missing dependency: 'checkAuth'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   27:18  warning  'err' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   48:23  error    Unexpected any. Specify a different type                                                                      @typescript-eslint/no-explicit-any
+  135:39  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                               react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\dashboard\page.tsx
+  67:8   warning  React Hook useEffect has a missing dependency: 'loadGarageData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  95:25  error    Unexpected any. Specify a different type                                                                           @typescript-eslint/no-explicit-any
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\page.tsx
+  50:132  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\register\page.tsx
+   73:25   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  246:62   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  246:86   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  246:112  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  321:57   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  321:137  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  419:38   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  419:49   error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  419:188  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\components\BookingModal.tsx
+   19:27   warning  'setSelectedOffer' is assigned a value but never used                                                            @typescript-eslint/no-unused-vars
+   21:58   error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   22:54   error    Unexpected any. Specify a different type                                                                         @typescript-eslint/no-explicit-any
+   30:8    warning  React Hook useEffect has a missing dependency: 'loadSlotData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   61:12   warning  'files' is assigned a value but only used as a type                                                              @typescript-eslint/no-unused-vars
+   78:11   warning  'simulateUpload' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  231:154  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                  react/no-unescaped-entities
+  318:157  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                  react/no-unescaped-entities
+  337:38   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                  react/no-unescaped-entities
+  381:64   error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                  react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\components\Calendar.tsx
+   8:19   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   9:21   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  33:162  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\components\GarageCard.tsx
+  99:31  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\components\TimeSlotPicker.tsx
+   6:44  warning  'X' is defined but never used             @typescript-eslint/no-unused-vars
+   8:11  warning  'TimeSlot' is defined but never used      @typescript-eslint/no-unused-vars
+  12:19  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:21  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  18:19  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:46  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\hooks\useGarageSearch.ts
+  84:36  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:73  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  84:93  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\lib\email-service.ts
+   4:68  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+  18:9   error  'mailOptions' is never reassigned. Use 'const' instead  prefer-const
+  18:22  error  Unexpected any. Specify a different type                @typescript-eslint/no-explicit-any
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\lib\supabase-admin.ts
+  62:19  warning  'authData' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\lib\supabase-service.ts
+  63:32  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+??? 57 problems (40 errors, 17 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+

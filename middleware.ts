@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { jwtVerify } from 'jose'
 
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
@@ -69,9 +70,46 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // Allow access to pro login page
+    if (pathname === '/pro/login' || pathname === '/pro/register') {
+        const token = request.cookies.get('pro_session')?.value
+        if (token) {
+            try {
+                const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'vitriopro-very-secret-key-12345')
+                await jwtVerify(token, secret)
+                // Valid session, redirect to dashboard
+                const dashboardUrl = new URL('/pro/dashboard', request.url)
+                return NextResponse.redirect(dashboardUrl)
+            } catch (e) {
+                // Invalid session, let them access login
+            }
+        }
+        return NextResponse.next()
+    }
+
+    // Protect all other /pro/* routes
+    if (pathname.startsWith('/pro')) {
+        const token = request.cookies.get('pro_session')?.value
+        if (!token) {
+            const loginUrl = new URL('/pro/login', request.url)
+            return NextResponse.redirect(loginUrl)
+        }
+
+        try {
+            const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'vitriopro-very-secret-key-12345')
+            await jwtVerify(token, secret)
+            return NextResponse.next()
+        } catch (error) {
+            const loginUrl = new URL('/pro/login', request.url)
+            const response = NextResponse.redirect(loginUrl)
+            response.cookies.delete('pro_session')
+            return response
+        }
+    }
+
     return NextResponse.next()
 }
 
 export const config = {
-    matcher: '/admin/:path*',
+    matcher: ['/admin/:path*', '/pro/:path*'],
 }

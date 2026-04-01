@@ -1,5 +1,4 @@
 import { MOCK_GARAGES } from "@/data/garages";
-import { GarageCard } from "@/components/GarageCard";
 import Link from "next/link";
 import { Metadata } from 'next';
 
@@ -53,7 +52,7 @@ export default function CityPage({ params }: Props) {
                         Les meilleurs spécialistes pare-brise à <span style={{ color: 'var(--color-primary)' }}>{city}</span>
                     </h1>
                     <p style={{ maxWidth: '600px', margin: '0 auto', color: 'var(--color-text-secondary)' }}>
-                        Comparez les tarifs et disponibilités des garages agréés à {city}. Remplacement de pare-brise, réparation d'impact, et calibrage caméra.
+                        Comparez les tarifs et disponibilités des garages agréés à {city}. Remplacement de pare-brise, réparation d&apos;impact, et calibrage caméra.
                     </p>
                 </div>
             </section>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAdminGarages, updateAdminGarageStatus, generateAccessCodeForGarage, getAppointments, COMMISSION_RATE, deleteAdminGarage } from "@/lib/supabase-service";
+import { COMMISSION_RATE } from "@/lib/supabase-service";
+import { secureGetAdminData, secureGenerateAccessCode, secureUpdateAdminGarageStatus, secureDeleteAdminGarage } from "@/app/admin/actions";
 import { getCurrentAdmin, signOutAdmin } from "@/lib/supabase-admin";
 import { useRouter } from "next/navigation";
 import type { Database } from "@/lib/supabase";
@@ -46,16 +47,13 @@ export default function AdminDashboard() {
 
   async function loadData() {
     try {
-      const [garagesData, appointmentsData] = await Promise.all([
-        getAdminGarages(),
-        getAppointments()
-      ]);
-      console.log('[DEBUG] Loaded garages:', garagesData.length);
-      console.log('[DEBUG] Loaded appointments:', appointmentsData.length);
-      console.log('[DEBUG] Sample appointment:', appointmentsData[0]);
-      console.log('[DEBUG] Sample garage:', garagesData[0]);
-      setAdminGarages(garagesData);
-      setAppointments(appointmentsData);
+      const { garages, appointments } = await secureGetAdminData();
+      console.log('[DEBUG] Loaded garages:', garages.length);
+      console.log('[DEBUG] Loaded appointments:', appointments.length);
+      console.log('[DEBUG] Sample appointment:', appointments[0]);
+      console.log('[DEBUG] Sample garage:', garages[0]);
+      setAdminGarages(garages);
+      setAppointments(appointments);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -81,41 +79,11 @@ export default function AdminDashboard() {
       const garage = adminGarages.find(g => g.id === garageId);
       if (!garage) throw new Error("Garage introuvable");
 
-      // 2. Generate code
-      const code = await generateAccessCodeForGarage(garageId);
-
-      // 3. Send Email Notification
-      try {
-        if (garage.email) {
-          console.log(`[EMAIL] Sending acceptance email to ${garage.email}`);
-          const res = await fetch('/api/emails', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              type: 'partner_accepted',
-              payload: {
-                email: garage.email,
-                name: garage.name,
-                code: code
-              }
-            })
-          });
-
-          if (!res.ok) {
-            const errData = await res.json();
-            throw new Error(errData.error || 'Erreur serveur lors de l\'envoi');
-          }
-
-          alert(`✅ Code généré avec succès : ${code}\n\n📨 Un email de notification a été envoyé au partenaire (${garage.email}).`);
-        } else {
-          alert(`⚠️ Code généré : ${code}\n\n❌ Impossible d'envoyer l'email : Aucune adresse email renseignée pour ce partenaire.`);
-        }
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-        alert(`⚠️ Code généré : ${code}\n\n❌ Erreur lors de l'envoi de l'email.`);
-      }
-
-      await updateAdminGarageStatus(garageId, 'Actif');
+      // 2. Generate code securely via Server Action
+      const code = await secureGenerateAccessCode(garageId);
+      await secureUpdateAdminGarageStatus(garageId, 'Actif');
+      
+      alert(`✅ Code généré avec succès : ${code}\n📨 Un email a été envoyé (si le garage a un email renseigné).`);
       await loadData(); // Refresh
     } catch (error: any) {
       console.error('Error generating code:', error);
@@ -125,7 +93,7 @@ export default function AdminDashboard() {
 
   async function handleUpdateStatus(garageId: number, status: string) {
     try {
-      await updateAdminGarageStatus(garageId, status);
+      await secureUpdateAdminGarageStatus(garageId, status);
       await loadData(); // Refresh
     } catch (error) {
       console.error('Error updating status:', error);
@@ -344,7 +312,7 @@ export default function AdminDashboard() {
                                 onClick={async () => {
                                   if (confirm('⚠️ Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT ce partenaire ?\n\nCette action est irréversible.')) {
                                     try {
-                                      await deleteAdminGarage(garage.id);
+                                      await secureDeleteAdminGarage(garage.id);
                                       loadData(); // Refresh list
                                     } catch (err) {
                                       console.error(err);
@@ -390,7 +358,7 @@ export default function AdminDashboard() {
                                 onClick={async () => {
                                   if (confirm('⚠️ Êtes-vous sûr de vouloir SUPPRIMER DÉFINITIVEMENT ce partenaire ?\n\nCette action est irréversible.')) {
                                     try {
-                                      await deleteAdminGarage(garage.id);
+                                      await secureDeleteAdminGarage(garage.id);
                                       loadData(); // Refresh list
                                     } catch (err) {
                                       console.error(err);

@@ -3,7 +3,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
-import { getGarageAvailabilities, getAppointmentsByGarage, createAppointment } from "@/lib/supabase-service";
+import { getGarageAvailabilities, getAppointmentsByGarage } from "@/lib/supabase-service";
+import { submitBooking } from "@/app/actions";
 import TimeSlotPicker from "./TimeSlotPicker";
 
 interface BookingModalProps {
@@ -94,7 +95,7 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
         if (selectedOffer && selectedDate) {
             setIsSubmitting(true);
             try {
-                await createAppointment({
+                await submitBooking({
                     client_name: formData.fullName,
                     vehicle: formData.plate, // Using Plate as vehicle identifier
                     date: selectedDate.toISOString(),
@@ -112,60 +113,6 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                     postal_code: formData.postalCode,
                     address: formData.postalCode // Map postal code to address as rough location if needed
                 });
-
-                // NOTIFICATION: Send Emails (Partner + Client)
-                console.log("[DEBUG] Sending partner alert for garageId:", garage.id);
-                const emailResults = await Promise.allSettled([
-                    // 1. Alert Partner
-                    fetch('/api/emails', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'partner_alert_new_appointment',
-                            payload: {
-                                garageId: garage.id,
-                                clientName: formData.fullName,
-                                vehicle: formData.plate,
-                                date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr })
-                            }
-                        })
-                    }).then(async res => {
-                        if (!res.ok) {
-                            const err = await res.json();
-                            throw new Error(`Partner Email Failed: ${err.error}`);
-                        }
-                    }),
-                    // 2. Confirm to Client
-                    fetch('/api/emails', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            type: 'client_booking_confirmation',
-                            payload: {
-                                clientEmail: formData.email,
-                                clientName: formData.fullName,
-                                vehicle: formData.plate,
-                                date: format(selectedDate, "dd/MM/yyyy 'à' HH:mm", { locale: fr }),
-                                garageName: garage.name,
-                                garageAddress: garage.address
-                            }
-                        })
-                    }).then(async res => {
-                        if (!res.ok) {
-                            const err = await res.json();
-                            throw new Error(`Client Email Failed: ${err.error}`);
-                        }
-                    })
-                ]);
-
-                // Check for failures
-                const failures = emailResults.filter(r => r.status === 'rejected');
-                if (failures.length > 0) {
-                    console.error("Some emails failed to send:", failures);
-                    alert("⚠️ La réservation est confirmée, mais une erreur est survenue lors de l'envoi des emails de confirmation. Veuillez vérifier vos spams ou contacter le support.");
-                } else {
-                    console.log("Both emails sent successfully");
-                }
 
                 // Also add to local context as a fallback/instant update
                 addAppointment({

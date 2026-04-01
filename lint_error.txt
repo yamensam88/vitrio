@@ -24,9 +24,36 @@
 [0m   [2m23:26[22m  [31merror[39m  Unexpected any. Specify a different type                [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m  [2m210:21[22m  [31merror[39m  Unexpected any. Specify a different type                [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m[0m
+[0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\garage-pare-brise\[city]\page.tsx[24m[0m
+[0m   [2m2:10[22m   [33mwarning[39m  'GarageCard' is defined but never used                           [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m56:132[22m  [31merror[39m    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m[0m
+[0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\actions.ts[24m[0m
+[0m   [2m9:5[22m   [33mwarning[39m  'updateGarageAvailability' is defined but never used  [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m35:14[22m  [33mwarning[39m  'e' is defined but never used                         [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m65:51[22m  [31merror[39m    Unexpected any. Specify a different type              [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m75:47[22m  [31merror[39m    Unexpected any. Specify a different type              [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m80:62[22m  [31merror[39m    Unexpected any. Specify a different type              [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m[0m
 [0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\dashboard\page.tsx[24m[0m
-[0m  [2m67:8[22m   [33mwarning[39m  React Hook useEffect has a missing dependency: 'loadGarageData'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
-[0m  [2m95:25[22m  [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m19:18[22m   [33mwarning[39m  'setHours' is defined but never used                                                                               [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m19:28[22m   [33mwarning[39m  'setMinutes' is defined but never used                                                                             [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m   [2m30:58[22m   [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m31:42[22m   [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m33:54[22m   [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m   [2m65:8[22m    [33mwarning[39m  React Hook useEffect has a missing dependency: 'loadGarageData'. Either include it or remove the dependency array  [2mreact-hooks/exhaustive-deps[22m[0m
+[0m   [2m93:25[22m   [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m101:64[22m   [31merror[39m    Unexpected any. Specify a different type                                                                           [2m@typescript-eslint/no-explicit-any[22m[0m
+[0m  [2m158:11[22m   [33mwarning[39m  'revenue' is assigned a value but never used                                                                       [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m182:67[22m   [31merror[39m    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                    [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m458:70[22m   [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                    [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m458:94[22m   [31merror[39m    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                    [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m458:121[22m  [31merror[39m    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                    [2mreact/no-unescaped-entities[22m[0m
+[0m[0m
+[0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\login\page.tsx[24m[0m
+[0m  [2m10:12[22m  [33mwarning[39m  'loading' is assigned a value but never used                     [2m@typescript-eslint/no-unused-vars[22m[0m
+[0m  [2m61:39[22m  [31merror[39m    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  [2mreact/no-unescaped-entities[22m[0m
+[0m  [2m93:39[22m  [31merror[39m    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  [2mreact/no-unescaped-entities[22m[0m
 [0m[0m
 [0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\app\pro\page.tsx[24m[0m
 [0m  [2m50:132[22m  [31merror[39m  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  [2mreact/no-unescaped-entities[22m[0m
@@ -81,6 +108,6 @@
 [0m[4mC:\Users\Sami\.gemini\antigravity\scratch\parebrise-comparateur\src\lib\supabase-service.ts[24m[0m
 [0m  [2m63:32[22m  [31merror[39m  Unexpected any. Specify a different type  [2m@typescript-eslint/no-explicit-any[22m[0m
 [0m[0m
-[0m[31m[1m✖ 54 problems (40 errors, 14 warnings)[22m[39m[0m
+[0m[31m[1m✖ 75 problems (54 errors, 21 warnings)[22m[39m[0m
 [0m[31m[1m[22m[39m[31m[1m  1 error and 0 warnings potentially fixable with the `--fix` option.[22m[39m[0m
 [0m[31m[1m[22m[39m[0m

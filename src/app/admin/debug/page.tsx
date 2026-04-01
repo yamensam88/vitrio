@@ -100,29 +100,6 @@ export default function DebugPage() {
                                             {!isOrphan && !isMissingEmail && garage.garage_id && (
                                                 <>
                                                     <span className="text-green-500">OK</span>
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (!confirm('Envoyer un email de test à ' + garage.email + ' ?')) return;
-                                                            try {
-                                                                const res = await fetch('/api/emails', {
-                                                                    method: 'POST',
-                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                    body: JSON.stringify({
-                                                                        type: 'test_partner_email',
-                                                                        payload: { garageId: garage.garage_id }
-                                                                    })
-                                                                });
-                                                                const data = await res.json();
-                                                                if (res.ok) alert('Succès! Envoyé à: ' + data.sentTo);
-                                                                else alert('Erreur: ' + data.error);
-                                                            } catch (e) {
-                                                                alert('Erreur réseau');
-                                                            }
-                                                        }}
-                                                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded text-xs hover:bg-blue-200"
-                                                    >
-                                                        Test Email
-                                                    </button>
                                                 </>
                                             )}
                                         </div>

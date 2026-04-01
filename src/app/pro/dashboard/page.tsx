@@ -2,23 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getGarageByAccessCode, getAppointmentsByGarage, updateAppointmentStatus, updateGarageAvailability, getGarageAvailabilities, addGarageAvailability, deleteGarageAvailability, getOffersByGarage, createOffer, updateOffer, deleteOffer, COMMISSION_RATE } from "@/lib/supabase-service";
-import type { Database } from "@/lib/supabase";
-import { format, setHours, setMinutes } from "date-fns";
+import { COMMISSION_RATE } from "@/lib/supabase-service";
+import { 
+    secureGetGarage as getGarageById, 
+    secureGetAppointments as getAppointmentsByGarage, 
+    secureUpdateAppointmentStatus as updateAppointmentStatus, 
+    secureGetAvailabilities as getGarageAvailabilities, 
+    secureAddAvailability as addGarageAvailability, 
+    secureDeleteAvailability as deleteGarageAvailability, 
+    secureGetOffers as getOffersByGarage, 
+    secureCreateOffer as createOffer, 
+    secureUpdateOffer as updateOffer, 
+    secureDeleteOffer as deleteOffer 
+} from "@/app/pro/actions";
+import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import TimeSlotPicker from "@/components/TimeSlotPicker";
+import type { Database } from "@/lib/supabase";
 
 type Garage = Database['public']['Tables']['garages']['Row'];
 type Appointment = Database['public']['Tables']['appointments']['Row'];
+type GarageAvailability = Database['public']['Tables']['garage_availabilities']['Row'];
+type Offer = Database['public']['Tables']['offers']['Row'];
 
 export default function PartnerDashboard() {
     const router = useRouter();
     const [userGarage, setUserGarage] = useState<Garage | null>(null);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [availabilities, setAvailabilities] = useState<any[]>([]);
-    const [offers, setOffers] = useState<any[]>([]);
+    const [availabilities, setAvailabilities] = useState<GarageAvailability[]>([]);
+    const [offers, setOffers] = useState<Offer[]>([]);
     const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
-    const [editingOffer, setEditingOffer] = useState<any | null>(null);
+    const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
     const [offerForm, setOfferForm] = useState({
         offerType: 'finance' as 'finance' | 'gift' | 'combined',
         customName: '',
@@ -35,34 +49,32 @@ export default function PartnerDashboard() {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Check if logged in (code in localStorage)
-        const code = localStorage.getItem('partner_access_code');
-        if (!code) {
-            router.push('/pro/login');
-            return;
+        async function init() {
+            try {
+                const res = await fetch('/api/pro/me');
+                if (!res.ok) {
+                    router.push('/pro/login');
+                    return;
+                }
+                const data = await res.json();
+                loadGarageData(data.garage_id);
+            } catch (err) {
+                console.error(err);
+                router.push('/pro/login');
+            }
         }
+        init();
+    }, [router]);
 
-        loadGarageData(code);
-    }, []); // Run only once on mount to prevent flickering loops
-
-    async function loadGarageData(code: string) {
+    async function loadGarageData(garageId: string) {
         try {
-            console.log("DEBUG: Loading garage data for code:", code);
-            const garage = await getGarageByAccessCode(code);
+            console.log("DEBUG: Loading garage data for id:", garageId);
+            const garage = await getGarageById(garageId);
             console.log("DEBUG: Garage found:", garage?.id);
 
             if (!garage) {
-                console.warn("DEBUG: No garage found for this code");
-                setError("Session expirée ou code invalide. Redirection vers la page de connexion...");
-                localStorage.removeItem('partner_access_code');
-                setTimeout(() => router.push('/pro/login'), 2000);
-                return;
-            }
-
-            const status = ((garage as any).normalized_status || '').toLowerCase();
-            if (status !== 'actif') {
-                setError("Votre compte est actuellement suspendu. Redirection...");
-                localStorage.removeItem('partner_access_code');
+                console.warn("DEBUG: No garage found for this id");
+                setError("Session expirée ou introuvable. Redirection vers la page de connexion...");
                 setTimeout(() => router.push('/pro/login'), 2000);
                 return;
             }
@@ -88,13 +100,13 @@ export default function PartnerDashboard() {
         }
     }
 
-    async function handleSlotToggle(date: Date, existingSlot?: any) {
+    async function handleSlotToggle(date: Date, existingSlot?: GarageAvailability) {
         if (!userGarage) return;
 
         try {
             if (existingSlot) {
                 // If it exists, we remove it (toggle off)
-                await deleteGarageAvailability(existingSlot.id);
+                await deleteGarageAvailability(Number(existingSlot.id), userGarage.id);
                 setAvailabilities(prev => prev.filter(av => av.id !== existingSlot.id));
             } else {
                 // If it doesn't exist, we add it (toggle on)
@@ -104,7 +116,7 @@ export default function PartnerDashboard() {
                     start_time: date.toISOString(),
                     end_time: endTime.toISOString(),
                     is_available: true
-                });
+                }, userGarage.id);
                 setAvailabilities(prev => [...prev, newAv]);
             }
         } catch (error) {
@@ -116,7 +128,7 @@ export default function PartnerDashboard() {
     async function handleToggleStatus(id: number, currentStatus: string) {
         try {
             const newStatus = currentStatus === "En attente" ? "Confirmé" : "Terminé";
-            await updateAppointmentStatus(id, newStatus);
+            await updateAppointmentStatus(id, newStatus, userGarage!.id);
 
             // Reload appointments
             if (userGarage) {
@@ -130,8 +142,8 @@ export default function PartnerDashboard() {
 
 
 
-    function handleLogout() {
-        localStorage.removeItem('partner_access_code');
+    async function handleLogout() {
+        await fetch('/api/pro/logout', { method: 'POST' });
         router.push('/pro/login');
     }
 
@@ -145,10 +157,6 @@ export default function PartnerDashboard() {
     }
 
     // Calculate Stats
-    const revenue = appointments
-        .filter(a => a.status === 'Terminé' || (a.status === 'Confirmé' && a.billing_triggered))
-        .reduce((acc, curr) => acc + curr.amount, 0);
-
     const confirmedCount = appointments.filter(a => a.status === 'Confirmé' || a.status === 'Terminé').length;
     const commissions = confirmedCount * COMMISSION_RATE;
 
@@ -169,7 +177,7 @@ export default function PartnerDashboard() {
                 <div style={{ marginBottom: '2rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
                         <div>
-                            <h1 style={{ margin: 0 }}>Gestion de l'Agenda</h1>
+                            <h1 style={{ margin: 0 }}>Gestion de l&apos;Agenda</h1>
                             <p style={{ color: '#64748b', margin: '0.25rem 0 0' }}>Cliquez sur les créneaux pour ouvrir ou fermer vos disponibilités.</p>
                         </div>
                     </div>
@@ -292,7 +300,7 @@ export default function PartnerDashboard() {
                                             onClick={async () => {
                                                 if (confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) {
                                                     try {
-                                                        await deleteOffer(offer.id);
+                                                        await deleteOffer(offer.id, userGarage!.id);
                                                         setOffers(prev => prev.filter(o => o.id !== offer.id));
                                                     } catch (err) {
                                                         console.error(err);
@@ -361,7 +369,7 @@ export default function PartnerDashboard() {
                                             price: finalPrice,
                                             currency: offerForm.currency,
                                             service_duration: offerForm.service_duration
-                                        });
+                                        }, userGarage!.id);
                                         setOffers(prev => prev.map(o => o.id === updated.id ? updated : o));
                                     } else {
                                         const newOffer = await createOffer({
@@ -372,7 +380,7 @@ export default function PartnerDashboard() {
                                             currency: offerForm.currency,
                                             service_duration: offerForm.service_duration,
                                             availability: new Date().toISOString()
-                                        });
+                                        }, userGarage!.id);
                                         setOffers(prev => [newOffer, ...prev]);
                                     }
                                     setIsOfferModalOpen(false);
@@ -445,7 +453,7 @@ export default function PartnerDashboard() {
                                                 <span style={{ fontWeight: 700, color: '#0369A1' }}>€</span>
                                             </div>
                                             <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: 4 }}>
-                                                Sera affiché comme : "Franchise offerte jusqu'à {offerForm.customValue}€"
+                                                Sera affiché comme : &quot;Franchise offerte jusqu&apos;à {offerForm.customValue}€&quot;
                                             </div>
                                         </div>
                                     ) : offerForm.offerType === 'gift' ? (

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { createAdminGarage } from "@/lib/supabase-service";
+import { submitPartnerRegistration } from "@/app/actions";
 
 export default function RegisterPro() {
     const router = useRouter();
@@ -49,8 +49,8 @@ export default function RegisterPro() {
                 effectivePrice = formData.customValue;
             }
 
-            // Create admin garage in Supabase
-            await createAdminGarage({
+            // Create admin garage securely via Server Action
+            await submitPartnerRegistration({
                 name: formData.name,
                 city: formData.city,
                 address: formData.address,
@@ -66,21 +66,6 @@ export default function RegisterPro() {
                 home_service: formData.homeService,
                 courtesy_vehicle: formData.courtesyVehicle,
                 franchise_offerte: formData.offerType === 'finance' || formData.offerType === 'combined'
-            });
-
-            // NOTIFICATION: Send Email to Admin
-            await fetch('/api/emails', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: 'admin_alert_new_partner',
-                    payload: {
-                        name: formData.name,
-                        city: formData.city,
-                        email: formData.email,
-                        phone: formData.phone
-                    }
-                })
             });
 
             alert('Inscription envoyée ! Vous recevrez un email avec votre code d\'accès une fois validé par l\'admin.');

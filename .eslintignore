@@ -1,0 +1,6 @@
+*.js
+*.mjs
+node_modules/
+.next/
+dist/
+build/

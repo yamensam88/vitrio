@@ -2,21 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getGarageByAccessCode } from '@/lib/supabase-service';
 import Link from 'next/link';
 
 export default function PartnerLogin() {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
-        // Check if already logged in
-        const savedCode = localStorage.getItem('partner_access_code');
-        if (savedCode) {
-            router.push('/pro/dashboard');
-        }
+        // Redirection should ideally be handled by middleware if logged in
+        // A simple ping could be placed here if needed, but not strictly required
     }, [router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -25,21 +21,18 @@ export default function PartnerLogin() {
         setError('');
 
         try {
-            console.log("DEBUG: Attempting login with code:", code);
-            const garage = await getGarageByAccessCode(code) as any;
-            console.log("DEBUG: Garage found in login:", garage?.id, "Status:", garage?.normalized_status);
+            console.log("DEBUG: Attempting login with API");
+            const response = await fetch('/api/pro/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
 
-            if (garage) {
-                const status = (garage.normalized_status || '').toLowerCase();
-                if (status !== 'actif') {
-                    console.warn("DEBUG: Login blocked due to status:", garage.normalized_status);
-                    setError("Votre compte est actuellement suspendu. Veuillez contacter l'administration.");
-                    return;
-                }
-                localStorage.setItem('partner_access_code', code);
+            if (response.ok) {
                 router.push('/pro/dashboard');
             } else {
-                setError("Code invalide. Veuillez vérifier votre code d'accès.");
+                const data = await response.json();
+                setError(data.error || "Code invalide. Veuillez vérifier votre code d'accès.");
             }
         } catch (err) {
             console.error("DEBUG: Login error:", err);
@@ -65,7 +58,7 @@ export default function PartnerLogin() {
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
                             <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                                Code d'accès
+                                Code d&apos;accès
                             </label>
                             <div className="mt-1">
                                 <input
@@ -97,7 +90,7 @@ export default function PartnerLogin() {
 
                     <div className="mt-6 text-center">
                         <Link href="/" className="text-sm text-blue-600 hover:underline">
-                            Retour à l'accueil
+                            Retour à l&apos;accueil
                         </Link>
                     </div>
                 </div>
