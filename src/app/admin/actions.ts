@@ -112,40 +112,29 @@ export async function secureGenerateAccessCode(adminGarageId: number) {
             .eq('id', publicGarageId);
         if (garageUpdateError) throw garageUpdateError;
     } else {
-        // Create new public garage
-        publicGarageId = `g_${adminGarageId}_${Date.now()}`;
+        // Create new public garage and let Postgres generate the UUID
         const newGarage = {
-            id: publicGarageId,
             name: adminGarage.name,
             address: adminGarage.address || `${adminGarage.city} Centre`,
             city: adminGarage.city,
-            lat: 48.8566 + (Math.random() * 0.1), // Mock coordinates
-            lng: 2.3522 + (Math.random() * 0.1),
+            coordinates: { lat: 48.8566 + (Math.random() * 0.1), lng: 2.3522 + (Math.random() * 0.1) },
             rating: 5.0,
             next_availability: new Date().toISOString(),
             image: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
-            access_code: secureCode,
-            home_service: adminGarage.home_service || false,
-            courtesy_vehicle: adminGarage.courtesy_vehicle || false,
-            franchise_offerte: adminGarage.franchise_offerte || true
         };
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: garageCreateError } = await (supabaseAdmin.from('garages') as any).insert(newGarage);
-        if (garageCreateError) throw garageCreateError;
+        const { data: createdGarage, error: garageCreateError } = await (supabaseAdmin.from('garages') as any)
+            .insert(newGarage)
+            .select('id')
+            .single();
+            
+        if (garageCreateError) {
+            console.error("DEBUG GARAGE CREATE ERROR:", garageCreateError);
+            throw garageCreateError;
+        }
 
-        // Create default offer
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: offerCreateError } = await (supabaseAdmin.from('offers') as any).insert({
-            id: `offer_${publicGarageId}`,
-            garage_id: publicGarageId,
-            price: adminGarage.offer_value || 120,
-            currency: 'EUR',
-            description: adminGarage.offer_description || 'Remplacement Standard',
-            availability: new Date().toISOString(),
-            service_duration: 120
-        });
-        if (offerCreateError) throw offerCreateError;
+        publicGarageId = createdGarage.id;
 
         // Link back to admin_garage
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
