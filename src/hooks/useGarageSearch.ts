@@ -61,10 +61,13 @@ export const useGarageSearch = () => {
         let results = garages.map((garage) => {
             // Calculate distance if location is available
             let distance = undefined;
-            if (userLocation) {
+            const lat = (garage.coordinates as any)?.lat || (garage as any).lat;
+            const lng = (garage.coordinates as any)?.lng || (garage as any).lng;
+
+            if (userLocation && lat && lng) {
                 distance = GeolocationService.calculateDistance(
                     userLocation,
-                    { lat: garage.lat, lng: garage.lng }
+                    { lat, lng }
                 );
             }
 
@@ -74,7 +77,7 @@ export const useGarageSearch = () => {
                 name: garage.name,
                 address: garage.address,
                 city: garage.city,
-                coordinates: { lat: garage.lat, lng: garage.lng },
+                coordinates: { lat, lng },
                 rating: garage.rating,
                 nextAvailability: garage.next_availability,
                 image: garage.image || 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
