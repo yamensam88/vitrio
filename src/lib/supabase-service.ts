@@ -12,18 +12,26 @@ export const COMMISSION_RATE = 55
 // Garages
 export async function getGarages() {
     // We only fetch garages where the associated admin_garage status is 'Actif'
-    const { data, error } = await supabase
-        .from('garages')
-        .select(`
-            *,
-            admin_garages!inner(status),
-            offers(*)
-        `)
-        .eq('admin_garages.status', 'Actif')
-        .order('created_at', { ascending: false })
+    const { data: adminGarages, error: adminErr } = await supabase
+        .from('admin_garages')
+        .select('garage_id, status')
+        .eq('status', 'Actif')
+        .not('garage_id', 'is', null);
 
-    if (error) throw error
-    return data as Garage[]
+    if (adminErr) throw adminErr;
+    
+    if (!adminGarages || adminGarages.length === 0) return [];
+    
+    const validGarageIds = adminGarages.map((a: any) => a.garage_id);
+
+    const { data: garages, error: garagesErr } = await supabase
+        .from('garages')
+        .select('*')
+        .in('id', validGarageIds)
+        .order('created_at', { ascending: false });
+
+    if (garagesErr) throw garagesErr;
+    return garages as Garage[];
 }
 
 export async function getGarageById(id: string) {
