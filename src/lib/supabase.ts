@@ -17,6 +17,7 @@ export type Database = {
                     city: string
                     lat: number
                     lng: number
+                    coordinates?: { lat: number, lng: number }
                     rating: number
                     next_availability: string
                     image: string | null
