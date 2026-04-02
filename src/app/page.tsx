@@ -7,6 +7,7 @@ import { GarageCard } from "@/components/GarageCard";
 import { FilterBar } from "@/components/FilterBar";
 import { BookingModal } from "@/components/BookingModal";
 import { Garage } from "@/types";
+import MapWrapper from "@/components/MapWrapper";
 
 export default function Home() {
   const {
@@ -22,6 +23,7 @@ export default function Home() {
   } = useGarageSearch();
 
   const [selectedGarage, setSelectedGarage] = useState<Garage | null>(null);
+  const [hoveredGarageId, setHoveredGarageId] = useState<string | null>(null);
 
   return (
     <main style={{ minHeight: '100vh', paddingBottom: '4rem' }}>
@@ -46,7 +48,7 @@ export default function Home() {
       >
         <div className="container">
           <h1 style={{
-            fontSize: '3rem',
+            fontSize: '2.5rem',
             fontWeight: 800,
             marginBottom: '1.5rem',
             color: 'var(--color-primary)',
@@ -55,7 +57,7 @@ export default function Home() {
           }}>
             Comparez, réservez, <br /><span style={{ color: 'var(--color-text-main)' }}>c’est posé.</span>
           </h1>
-          <p style={{ color: 'var(--color-text-secondary)', maxWidth: '600px', margin: '0 auto 2.5rem', fontSize: '1.125rem', lineHeight: 1.6 }}>
+          <p style={{ color: 'var(--color-text-secondary)', maxWidth: '600px', margin: '0 auto 2.5rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
             La première plateforme de confiance pour le vitrage automobile. <br />
             Trouvez un spécialiste vérifié près de chez vous en 2 minutes.
           </p>
@@ -64,7 +66,7 @@ export default function Home() {
             onClick={locateUser}
             disabled={loadingLocation}
             className="btn btn-primary"
-            style={{ fontSize: '1.1rem', padding: '1rem 2.5rem' }}
+            style={{ fontSize: '1rem', padding: '0.8rem 2rem' }}
           >
             {loadingLocation ? 'Localisation en cours...' : '📍 Trouver les garages à proximité'}
           </button>
@@ -83,42 +85,63 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Main Content */}
-      <div className="container">
+      {/* Main Content - SPLIT SCREEN */}
+      <div className="container" style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '2rem', alignItems: 'flex-start' }}>
 
-        {/* Filters */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
-              {garages.length} Experts disponibles
-            </h2>
-            <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-              Trier par :
-            </span>
+        {/* Left Column: List */}
+        <div style={{ flex: '1 1 500px', minWidth: 0 }}>
+          {/* Filters */}
+          <div style={{ marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>
+                {garages.length} Experts disponibles
+              </h2>
+            </div>
+            <FilterBar
+              currentSort={sortBy}
+              onSortChange={setSortBy}
+              serviceFilters={serviceFilters}
+              onServiceFilterChange={setServiceFilters}
+              disabled={loadingLocation}
+            />
           </div>
-          <FilterBar
-            currentSort={sortBy}
-            onSortChange={setSortBy}
-            serviceFilters={serviceFilters}
-            onServiceFilterChange={setServiceFilters}
-            disabled={loadingLocation}
+
+          {/* Results Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '1.5rem'
+          }}>
+            {garages.map((garage) => (
+              <div
+                key={garage.id}
+                onMouseEnter={() => setHoveredGarageId(garage.id)}
+                onMouseLeave={() => setHoveredGarageId(null)}
+                style={{
+                  transition: 'transform 0.2s',
+                  transform: hoveredGarageId === garage.id ? 'translateY(-4px)' : 'none',
+                  zIndex: hoveredGarageId === garage.id ? 10 : 1
+                }}
+              >
+                <GarageCard
+                  garage={garage}
+                  onSelect={setSelectedGarage}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Column: Map */}
+        <div style={{ flex: '1 1 400px', position: 'sticky', top: '1rem', height: 'calc(100vh - 2rem)', minHeight: '400px', display: 'flex' }}>
+          <MapWrapper
+            garages={garages}
+            userLocation={userLocation}
+            hoveredGarageId={hoveredGarageId}
+            onGarageSelect={setSelectedGarage}
           />
         </div>
 
-        {/* Results Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-          gap: '2rem'
-        }}>
-          {garages.map((garage) => (
-            <GarageCard
-              key={garage.id}
-              garage={garage}
-              onSelect={setSelectedGarage}
-            />
-          ))}
-        </div>
       </div>
 
       {selectedGarage && (

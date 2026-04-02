@@ -368,26 +368,30 @@ export const BookingModal = ({ garage, onClose }: BookingModalProps) => {
                 {/* STEP 4: SUCCESS */}
                 {step === "CONFIRM" && (
                     <div style={{ textAlign: 'center', padding: '2rem 1rem' }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-text-main)', marginBottom: '0.5rem' }}>Réservation Confirmée !</h2>
-                        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem' }}>
-                            Votre dossier a été transmis à <strong>{garage.name}</strong>.
-                            <br />Vous recevrez un email de confirmation à <strong>{formData.email}</strong>.
+                        <div style={{ fontSize: '4rem', marginBottom: '1rem', animation: 'bounce 1s' }}>⚡</div>
+                        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-primary)', marginBottom: '0.5rem' }}>Demande Express Envoyée !</h2>
+                        <p style={{ color: 'var(--color-text-secondary)', marginBottom: '2rem', fontSize: '1.05rem', lineHeight: '1.5' }}>
+                            Le créneau est actuellement <strong>pré-réservé</strong>. <br />
+                            Le professionnel <strong>{garage.name}</strong> a été notifié en urgence.
                         </p>
-                        <div style={{ background: '#F0FDF4', padding: '1rem', borderRadius: '8px', border: '1px solid #BBF7D0', marginBottom: '2rem' }}>
-                            <h4 style={{ color: '#166534', fontWeight: 700, marginBottom: '0.5rem' }}>Prochaines étapes</h4>
-                            <ul style={{ textAlign: 'left', fontSize: '0.9rem', color: '#15803D', paddingLeft: '1.5rem', lineHeight: 1.6 }}>
-                                <li>Le garage va vérifier votre dossier assurance sous 24h.</li>
-                                <li>Si tout est complet, vous n'aurez rien à avancer.</li>
-                                <li>Présentez-vous le <strong>{selectedDate ? format(selectedDate, "dd MMM à HH:mm", { locale: fr }) : ''}</strong>.</li>
+                        
+                        <div style={{ background: '#F0FDF4', padding: '1.5rem', borderRadius: '12px', border: '1px solid #BBF7D0', marginBottom: '2rem', textAlign: 'left' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                <h4 style={{ color: '#166534', fontWeight: 700, margin: 0, fontSize: '1.1rem' }}>Engagement Vitrio</h4>
+                            </div>
+                            <ul style={{ fontSize: '0.95rem', color: '#15803D', paddingLeft: '1.5rem', lineHeight: 1.6, margin: 0 }}>
+                                <li style={{ marginBottom: '0.5rem' }}>Le garage s'engage à confirmer votre venue <strong>sous 2 heures</strong>.</li>
+                                <li style={{ marginBottom: '0.5rem' }}>Si vous avez choisi l'offre Franchise Offerte, tout est pris en charge (0€ d'avance*).</li>
+                                <li>Vous recevrez un SMS ou Email de confirmation dès l'acceptation par le garage.</li>
                             </ul>
                         </div>
                         <button
                             className="btn btn-primary"
-                            style={{ width: '100%' }}
+                            style={{ width: '100%', padding: '1rem', fontSize: '1.1rem' }}
                             onClick={onClose}
                         >
-                            Fermer
+                            Fermer et retourner à l'accueil
                         </button>
                     </div>
                 )}
