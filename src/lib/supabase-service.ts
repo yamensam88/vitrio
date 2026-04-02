@@ -27,8 +27,7 @@ export async function getGarages() {
     const { data: garages, error: garagesErr } = await supabase
         .from('garages')
         .select('*')
-        .in('id', validGarageIds)
-        .order('created_at', { ascending: false });
+        .in('id', validGarageIds);
 
     if (garagesErr) throw garagesErr;
     return garages as Garage[];
