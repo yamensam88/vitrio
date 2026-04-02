@@ -634,7 +634,7 @@ export default function PartnerDashboard() {
                                                     color: 'white'
                                                 }}
                                             >
-                                                Accepter & Voir ({app.amount}€)
+                                                Accepter & Voir (55€ HT)
                                             </button>
                                             <span style={{ fontSize: '0.75rem', color: '#64748B' }}>Déclenche la facturation</span>
                                         </div>
