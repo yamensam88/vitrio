@@ -112,12 +112,31 @@ export async function secureGenerateAccessCode(adminGarageId: number) {
             .eq('id', publicGarageId);
         if (garageUpdateError) throw garageUpdateError;
     } else {
+        // Geocode the address using Nominatim OpenStreetMap
+        let lat = 48.8566 + (Math.random() * 0.1);
+        let lng = 2.3522 + (Math.random() * 0.1);
+        try {
+            const query = adminGarage.address ? `${adminGarage.address}, ${adminGarage.city}` : adminGarage.city;
+            if (query) {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`, {
+                    headers: { 'User-Agent': 'Vitrio-Comparateur/1.0' }
+                });
+                const geoData = await res.json();
+                if (geoData && geoData.length > 0) {
+                    lat = parseFloat(geoData[0].lat);
+                    lng = parseFloat(geoData[0].lon);
+                }
+            }
+        } catch (e) {
+            console.error('Geocoding error:', e);
+        }
+
         // Create new public garage and let Postgres generate the UUID
         const newGarage = {
             name: adminGarage.name,
             address: adminGarage.address || `${adminGarage.city} Centre`,
             city: adminGarage.city,
-            coordinates: { lat: 48.8566 + (Math.random() * 0.1), lng: 2.3522 + (Math.random() * 0.1) },
+            coordinates: { lat, lng },
             rating: 5.0,
             next_availability: new Date().toISOString(),
             image: 'https://images.unsplash.com/photo-1486006920555-c77dcf18193c?auto=format&fit=crop&q=80&w=800',
