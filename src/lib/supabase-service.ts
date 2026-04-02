@@ -47,43 +47,36 @@ export async function getGarageById(id: string) {
 
 export async function getGarageByAccessCode(code: string) {
     console.log("DEBUG: Calling getGarageByAccessCode with code:", code);
-    const { data, error } = await supabase
-        .from('garages')
-        .select(`
-            *,
-            admin_garages!inner(status)
-        `)
-        .eq('access_code', code)
-        .single()
+    
+    // 1. Fetch from admin_garages which holds the actual code
+    const { data: adminGarage, error: adminErr } = await supabase
+        .from('admin_garages')
+        .select('garage_id, status')
+        .eq('generated_code', code)
+        .single();
 
-    if (error) {
-        console.error("DEBUG: Error in getGarageByAccessCode:", error);
+    if (adminErr || !adminGarage || !adminGarage.garage_id) {
+        console.error("DEBUG: Code not found in admin_garages or no linked garage:", adminErr);
         return null;
     }
 
-    console.log("DEBUG: getGarageByAccessCode data structure:", {
-        id: data.id,
-        admin_garages_type: typeof data.admin_garages,
-        is_array: Array.isArray(data.admin_garages)
-    });
+    // 2. Fetch the linked public garage
+    const { data: garageData, error: garageErr } = await supabase
+        .from('garages')
+        .select('*')
+        .eq('id', adminGarage.garage_id)
+        .single();
 
-    // Transform to ensure status is accessible correctly whether it's an object or an array of 1
-    const garageData = data as any;
-    let status = 'Inconnu';
-
-    if (garageData.admin_garages) {
-        if (Array.isArray(garageData.admin_garages)) {
-            status = garageData.admin_garages[0]?.status || 'Inconnu';
-        } else {
-            status = garageData.admin_garages.status || 'Inconnu';
-        }
+    if (garageErr || !garageData) {
+        console.error("DEBUG: Linked public garage not found:", garageErr);
+        return null;
     }
 
-    console.log("DEBUG: Extracted status:", status);
+    console.log("DEBUG: Extracted status:", adminGarage.status);
 
     return {
         ...garageData,
-        normalized_status: status
+        normalized_status: adminGarage.status || 'Inconnu'
     };
 }
 
